@@ -69,8 +69,29 @@
         .paso:hover { background-color: rgba(56, 189, 248, 0.1); transform: translateX(8px); }
         hr { border: 0; height: 1px; margin: 30px 0; background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent); }
 
+        /* --- PANEL DE ESTADÍSTICAS EN TIEMPO REAL --- */
+        .stats-panel {
+            background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; border-radius: 12px;
+            padding: 15px; margin: 25px 0 10px 0; font-family: monospace; text-align: left;
+        }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .stat-box { background: rgba(30, 41, 59, 0.5); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-label { color: #94a3b8; font-size: 11px; text-transform: uppercase; }
+        .stat-value { font-size: 16px; font-weight: bold; margin-top: 4px; transition: color 0.3s; }
+        .stat-ok { color: #4ade80; }
+        .stat-warn { color: #f59e0b; }
+        .stat-crit { color: #ef4444; }
+
+        /* BOTÓN SECRETO CAMUFLADO */
+        .secret-kernel-btn {
+            display: block; width: fit-content; margin: 8px auto 0 auto; font-family: monospace; font-size: 11px;
+            color: #475569; background: none; border: none; cursor: pointer; transition: all 0.3s; user-select: none;
+        }
+        .secret-kernel-btn:hover { color: #64748b; }
+        .secret-kernel-btn.active-god { color: #f59e0b; font-weight: bold; text-shadow: 0 0 8px #f59e0b; animation: blink 0.8s infinite alternate; }
+
         /* --- SIMULADOR DE CONEXIÓN --- */
-        .conn-container { background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 12px; margin: 20px 0; }
+        .conn-container { background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 12px; margin: 0 0 20px 0; border: 1px solid rgba(255,255,255,0.02); }
         .switch-btn {
             background: #334155; color: #fff; border: none; padding: 8px 16px; margin: 5px; cursor: pointer; border-radius: 6px; font-weight: bold; transition: all 0.3s;
         }
@@ -192,7 +213,7 @@
     </div>
 
     <div class="container">
-        <h1 ondblclick="activateGodMode()">Cómo instalar DroidCam por <span style="text-decoration: underline;">Garrett</span></h1>
+        <h1>Cómo instalar DroidCam por <span style="text-decoration: underline;">Garrett</span></h1>
 
         <img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2FhN2ZlNGRmYjdlNWQ1YzUzY2NjZGJlNWU5NjYzZTcxMzIxYjc4ZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oKIPnAiaMCws8nOsE/giphy.gif" alt="Programador" class="animated-image">
 
@@ -214,6 +235,27 @@
             <button class="ip-btn" onclick="triggerHackBroma()">Verificar Conexión</button>
         </div>
 
+        <!-- --- HUD DE ESTADÍSTICAS EN TIEMPO REAL --- -->
+        <div class="stats-panel">
+            <div style="color: #38bdf8; margin-bottom: 8px; font-size: 12px; font-weight: bold; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 4px;">📊 MONITOREO DE RECURSOS DROIDCAM</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">CPU Usage</div>
+                    <div class="stat-value stat-ok" id="stat-cpu">24%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">RAM Leak</div>
+                    <div class="stat-value stat-ok" id="stat-ram">62%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Conexión</div>
+                    <div class="stat-value stat-ok" id="stat-conn">ESTABLE</div>
+                </div>
+            </div>
+            <!-- BOTÓN SECRETO INTERRUPTOR -->
+            <button class="secret-kernel-btn" id="secretGodBtn" onclick="toggleSecretGodMode()">KERNEL_BUILD_VERSION: v2.4.0-release</button>
+        </div>
+
         <div class="conn-container">
             <div>Selecciona el método de conexión para ver estabilidad:</div>
             <button class="switch-btn active" id="btnWifi" onclick="setConnection('wifi')">Modo Wi-Fi</button>
@@ -231,13 +273,16 @@
 
         <hr>
 
+        <!-- ARCADE CENTER -->
         <div class="game-header">
             <div class="game-title" id="arcadeTitle" style="margin:0; font-weight:bold;">🎮 ARCADE CENTER</div>
             <button class="audio-toggle" id="muteBtn" onclick="toggleMute()">🔊 Sonido ON</button>
         </div>
         
         <canvas id="gameCanvas" width="600" height="150"></canvas>
+        <div style="font-size:11px; color:#64748b; margin-top:2px;">(Click en pantalla para Saltar / Tecla <b>F</b> para lanzar fuego si eres el Dragón)</div>
         
+        <!-- HUD DE INVENTARIO PARA ITEMS COMPRADOS -->
         <div class="inventory-hud">
             <span>🎒 Inventario:</span>
             <div class="inv-badge" id="hud-shield">🛡️ Escudo: x0</div>
@@ -253,15 +298,24 @@
             </div>
             
             <div class="arcade-panel">
-                <h4>💰 TIENDA MULTIUSO (<span id="coinCount">0</span> 🪙)</h4>
+                <h4>💰 SELECCIÓN DE HÉROE & TIENDA (<span id="coinCount">0</span> 🪙)</h4>
                 <div class="shop-item">
-                    <span>🔷 T-Rex Cyan</span>
+                    <span>Rex Fiel Cyan</span>
                     <button class="shop-btn equipped" id="skin-cyan" onclick="equipSkin('cyan')">Equipar</button>
                 </div>
                 <div class="shop-item">
-                    <span>👑 Premium Gold</span>
+                    <span>Rex Gold Premium</span>
                     <button class="shop-btn" id="skin-gold" onclick="buySkin('gold', 50)">Comprar (50 🪙)</button>
                 </div>
+                <div class="shop-item">
+                    <span>Dragón de Fuego (Tecla F)</span>
+                    <button class="shop-btn" id="skin-dragon" onclick="buySkin('dragon', 80)">Comprar (80 🪙)</button>
+                </div>
+                <div class="shop-item">
+                    <span>Duende del Bosque (Doble Salto)</span>
+                    <button class="shop-btn" id="skin-goblin" onclick="buySkin('goblin', 60)">Comprar (60 🪙)</button>
+                </div>
+                
                 <div style="border-top:1px solid #334155; margin:6px 0; padding-top:6px; font-weight:bold; color:#a855f7; font-size:11px;">ITEMS DE SUPERVIVENCIA</div>
                 <div class="shop-item">
                     <span>🛡️ Escudo Contra Cactus</span>
@@ -274,6 +328,7 @@
             </div>
         </div>
 
+        <!-- SISTEMA DE LOGROS EXPANDIDO -->
         <div class="achievements">
             <div class="ach-card" id="ach-curious">🃏 Curioso<br>Viste el chiste</div>
             <div class="ach-card" id="ach-reader">⚡ Explorador<br>Leíste los pasos</div>
@@ -304,9 +359,10 @@
         // --- VARIABLES DE MOTOR DE JUEGO GENERAL ---
         let inventory = { shield: 0, gravity: false, doubleJump: false };
         let activeChallenge = false;
-        let jumpsCount = 0; // Para el doble salto
+        let jumpsCount = 0; 
+        let connectionMode = 'wifi'; 
+        let godModeActive = false; 
 
-        // Modificadores de Estado In-Game (PowerUps recolectados en mapa)
         let powerupTimers = { turbo: 0, magnet: 0 };
 
         // --- AUDIO SISTEMA ---
@@ -333,17 +389,46 @@
             setTimeout(() => { p.style.transform = 'translate(-50%, -50%) scale(0)'; p.style.opacity = '0'; setTimeout(() => p.remove(), 400); }, 50);
         });
 
+        // --- INTERRUPTOR SECRETO MODO DIOS ---
+        function toggleSecretGodMode() {
+            godModeActive = !godModeActive;
+            const btn = document.getElementById('secretGodBtn');
+            const title = document.getElementById('arcadeTitle');
+            
+            if (godModeActive) {
+                btn.textContent = "⚙️ KERNEL_OVERRIDE: GOD_MODE_ENABLED";
+                btn.classList.add('active-god');
+                title.textContent = "🔥 MODO DIOS INICIADO";
+                dino.height = 45; dino.width = 45; 
+                updateCoins(100);
+                playTone(600, 'sine', 0.2);
+            } else {
+                btn.textContent = "KERNEL_BUILD_VERSION: v2.4.0-release";
+                btn.classList.remove('active-god');
+                title.textContent = "🎮 ARCADE CENTER";
+                resizeDinoBasedOnSkin();
+                playTone(300, 'sine', 0.2);
+            }
+        }
+
         // --- TIENDA Y ECONOMÍA ---
         let coins = parseInt(localStorage.getItem('droid_coins')) || 0;
         let ownedSkins = JSON.parse(localStorage.getItem('droid_skins')) || ['cyan'];
         let equippedSkin = localStorage.getItem('droid_equipped_skin') || 'cyan';
-        const skinColors = { cyan: '#38bdf8', gold: '#f59e0b' };
+        const skinColors = { cyan: '#38bdf8', gold: '#f59e0b', dragon: '#ef4444', goblin: '#22c55e' };
+
+        function resizeDinoBasedOnSkin() {
+            if(godModeActive) return;
+            if(equippedSkin === 'goblin') { dino.width = 24; dino.height = 32; }
+            else if(equippedSkin === 'dragon') { dino.width = 36; dino.height = 32; }
+            else { dino.width = 30; dino.height = 34; } // T-Rex dimensiones estilizadas
+        }
 
         function updateCoins(val) { coins += val; localStorage.setItem('droid_coins', coins); document.getElementById('coinCount').textContent = coins; }
         
         function updateShopUI() {
             document.getElementById('coinCount').textContent = coins;
-            ['cyan', 'gold'].forEach(sk => {
+            ['cyan', 'gold', 'dragon', 'goblin'].forEach(sk => {
                 let btn = document.getElementById(`skin-${sk}`);
                 if (btn) {
                     if (equippedSkin === sk) { btn.textContent = "Equipado"; btn.className = "shop-btn equipped"; }
@@ -354,14 +439,14 @@
             document.getElementById('hud-gravity').textContent = `🌙 Gravedad: ${inventory.gravity ? 'ON' : 'OFF'}`;
             document.getElementById('hud-gravity').className = inventory.gravity ? "inv-badge active-item" : "inv-badge";
             
-            // HUD interactivo en tiempo real de Buffs
             const tBadge = document.getElementById('hud-turbo');
             tBadge.textContent = `⚡ Turbo: ${powerupTimers.turbo > 0 ? Math.ceil(powerupTimers.turbo/60)+'s' : 'OFF'}`;
             tBadge.className = powerupTimers.turbo > 0 ? "inv-badge powerup-active" : "inv-badge";
 
             const djBadge = document.getElementById('hud-doublejump');
-            djBadge.textContent = `👟 Doble Salto: ${inventory.doubleJump ? 'ACTIVO' : 'OFF'}`;
-            djBadge.className = inventory.doubleJump ? "inv-badge powerup-active" : "inv-badge";
+            let hasDJ = inventory.doubleJump || equippedSkin === 'goblin';
+            djBadge.textContent = `👟 Doble Salto: ${hasDJ ? 'ACTIVO' : 'OFF'}`;
+            djBadge.className = hasDJ ? "inv-badge powerup-active" : "inv-badge";
         }
 
         function buySkin(sk, price) {
@@ -369,7 +454,7 @@
             if (coins >= price) { updateCoins(-price); ownedSkins.push(sk); localStorage.setItem('droid_skins', JSON.stringify(ownedSkins)); equipSkin(sk); playTone(523.25, 'sine', 0.3); }
             else { playTone(150, 'sawtooth', 0.2); alert("¡Monedas insuficientes!"); }
         }
-        function equipSkin(sk) { if (ownedSkins.includes(sk)) { equippedSkin = sk; localStorage.setItem('droid_equipped_skin', sk); updateShopUI(); } }
+        function equipSkin(sk) { if (ownedSkins.includes(sk)) { equippedSkin = sk; localStorage.setItem('droid_equipped_skin', sk); resizeDinoBasedOnSkin(); updateShopUI(); } }
 
         function buyPowerUp(item, price) {
             if (coins >= price) {
@@ -384,7 +469,7 @@
             }
         }
 
-        // --- LEADERBOARD & APUESTAS ---
+        // --- LEADERBOARD ---
         function renderLeaderboard() {
             let myMax = parseInt(localStorage.getItem('droid_highscore')) || 0;
             let players = [{name: "Garrett 🥇", score: 450}, {name: "Tú", score: myMax}, {name: "Javier <span class='glitch-name'>🦆</span>", score: 30}];
@@ -418,249 +503,481 @@
         function triggerPanic() { document.getElementById('panicScreen').style.display = 'block'; unlockAchievement('ach-panic'); }
         function closePanic() { document.getElementById('panicScreen').style.display = 'none'; }
 
+        // --- RECURSOS SIMULADOS ---
+        setInterval(() => {
+            if (matrixActive) return;
+            const cpuEl = document.getElementById('stat-cpu');
+            const ramEl = document.getElementById('stat-ram');
+            const connEl = document.getElementById('stat-conn');
+
+            let cpuBase = boss.active ? 85 : (gameScore > 200 ? 52 : 22);
+            let cpuVal = Math.floor(cpuBase + (Math.random() * 14 - 7));
+            if (cpuVal < 5) cpuVal = 5;
+            cpuEl.textContent = `${cpuVal}%`;
+
+            if (cpuVal > 70) { cpuEl.className = "stat-value stat-crit"; }
+            else if (cpuVal > 45) { cpuEl.className = "stat-value stat-warn"; }
+            else { cpuEl.className = "stat-value stat-ok"; }
+
+            let ramVal = Math.floor(64 + Math.sin(Date.now() / 10000) * 4 + (Math.random() * 2));
+            ramEl.textContent = `${ramVal}%`;
+            ramEl.className = ramVal > 67 ? "stat-value stat-warn" : "stat-value stat-ok";
+
+            if (connectionMode === 'usb') {
+                connEl.textContent = "EXTREMA"; connEl.className = "stat-value stat-ok";
+            } else {
+                let rand = Math.random();
+                if (boss.active) { connEl.textContent = "⚡ BOSS INTERF."; connEl.className = "stat-value stat-crit"; }
+                else if (rand > 0.92) { connEl.textContent = "INESTABLE"; connEl.className = "stat-value stat-crit"; }
+                else { connEl.textContent = "ESTABLE"; connEl.className = "stat-value stat-ok"; }
+            }
+        }, 1200);
+
         // ==========================================
-        //         MOTOR DEL MINI JUEGO ARCADE V3
+        //         MOTOR DEL MINI JUEGO ARCADE V5
         // ==========================================
         const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
         
-        let dino = { x: 50, y: 120, width: 26, height: 26, vy: 0, gravity: 0.55 };
-        let obstacles = []; // Cactus, Pájaros, Meteoritos
-        let dynamicItems = []; // Monedas y Power-ups flotantes
-        let projectiles = []; // Disparos del Alien Boss
+        let dino = { x: 50, y: 120, width: 30, height: 34, vy: 0, gravity: 0.55 };
+        let obstacles = []; let dynamicItems = []; let projectiles = []; let playerProjectiles = [];
         let gameOver = false; let gameScore = 0; let baseSpeed = 4.2;
 
-        // Propiedades del BOSS (Alien)
-        let boss = { active: false, x: 650, y: 40, width: 70, height: 40, hp: 100, maxHp: 100, direction: 1, shootCooldown: 0 };
+        // Estructura de Jefes por etapas
+        let boss = { active: false, type: 'alien', name: "Alien del Lag", x: 650, y: 40, width: 75, height: 45, hp: 100, maxHp: 100, direction: 1, shootCooldown: 0 };
+
+        function checkBossSpawns() {
+            if (boss.active) return;
+            
+            if (gameScore >= 1600) {
+                spawnBoss('dragon_final', "Dragón del Overclock", 300, 110, 80);
+            } else if (gameScore >= 800) {
+                spawnBoss('blue_screen', "Mago BSOD 404", 200, 60, 70);
+            } else if (gameScore >= 400) {
+                spawnBoss('broken_bot', "Bot Defectuoso v2.0", 150, 60, 65);
+            } else if (gameScore >= 150) {
+                spawnBoss('alien', "Alien del Lag", 100, 75, 45);
+            }
+        }
+
+        function spawnBoss(type, name, hp, w, h) {
+            boss.active = true; boss.type = type; boss.name = name;
+            boss.hp = hp; boss.maxHp = hp; boss.x = 650; boss.y = 30;
+            boss.width = w; boss.height = h; boss.shootCooldown = 0;
+            playTone(220, 'sawtooth', 0.5);
+        }
 
         function resetGameEntities() {
-            dino.y = 120; dino.vy = 0; obstacles = []; dynamicItems = []; projectiles = [];
+            resizeDinoBasedOnSkin(); dino.y = 150 - dino.height; dino.vy = 0;
+            obstacles = []; dynamicItems = []; projectiles = []; playerProjectiles = [];
             gameScore = 0; gameOver = false; jumpsCount = 0;
-            inventory.doubleJump = false; powerupTimers.turbo = 0; powerupTimers.magnet = 0;
-            boss.active = false; boss.x = 650; boss.hp = 100;
+            powerupTimers.turbo = 0; powerupTimers.magnet = 0;
+            boss.active = false;
             updateShopUI();
         }
+
+        // --- FUNCIONES VECTORIALES DE RENDERIZADO DETALLADO ---
+
+        function drawTRex(x, y, w, h, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            // Cabeza y Mandíbula
+            ctx.moveTo(x + w * 0.4, y);
+            ctx.lineTo(x + w, y);
+            ctx.lineTo(x + w, y + h * 0.3);
+            ctx.lineTo(x + w * 0.6, y + h * 0.3);
+            ctx.lineTo(x + w * 0.9, y + h * 0.45);
+            ctx.lineTo(x + w * 0.5, y + h * 0.45);
+            // Cuerpo y lomo
+            ctx.lineTo(x + w * 0.5, y + h * 0.7);
+            // Cola
+            ctx.lineTo(x, y + h * 0.5);
+            ctx.lineTo(x + w * 0.2, y + h * 0.85);
+            // Patas
+            ctx.lineTo(x + w * 0.3, y + h);
+            ctx.lineTo(x + w * 0.4, y + h);
+            ctx.lineTo(x + w * 0.45, y + h * 0.8);
+            ctx.lineTo(x + w * 0.6, y + h);
+            ctx.lineTo(x + w * 0.7, y + h);
+            ctx.lineTo(x + w * 0.6, y + h * 0.6);
+            ctx.closePath();
+            ctx.fill();
+
+            // Ojo brillante
+            ctx.fillStyle = '#000';
+            ctx.fillRect(x + w * 0.75, y + h * 0.08, 3, 3);
+            // Pequeños Brazos
+            ctx.fillStyle = color;
+            ctx.fillRect(x + w * 0.7, y + h * 0.5, 6, 3);
+        }
+
+        function drawDragon(x, y, w, h, color, isBoss = false) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            // Hocico y Cabeza
+            ctx.moveTo(x + w * 0.5, y + h * 0.2);
+            ctx.lineTo(x + w * 0.9, y + h * 0.2);
+            ctx.lineTo(x + w, y + h * 0.4);
+            ctx.lineTo(x + w * 0.6, y + h * 0.4);
+            // Cuello largo
+            ctx.lineTo(x + w * 0.5, y + h * 0.6);
+            // Cuerpo
+            ctx.lineTo(x + w * 0.7, y + h * 0.8);
+            ctx.lineTo(x + w * 0.5, y + h);
+            // Cola con pincho terminal
+            ctx.lineTo(x, y + h * 0.9);
+            ctx.lineTo(x + w * 0.1, y + h * 0.7);
+            ctx.closePath();
+            ctx.fill();
+
+            // Ala extendida
+            ctx.fillStyle = isBoss ? '#450a0a' : '#7f1d1d';
+            ctx.beginPath();
+            ctx.moveTo(x + w * 0.4, y + h * 0.5);
+            ctx.lineTo(x + w * 0.1, y + h * 0.1);
+            ctx.lineTo(x + w * 0.3, y + h * 0.4);
+            ctx.lineTo(x + w * 0.05, y + h * 0.3);
+            ctx.lineTo(x + w * 0.4, y + h * 0.6);
+            ctx.closePath();
+            ctx.fill();
+
+            // Ojo de reptil
+            ctx.fillStyle = '#fde047';
+            ctx.fillRect(x + w * 0.75, y + h * 0.25, 3, 3);
+        }
+
+        function drawGoblin(x, y, w, h) {
+            // Cuerpo / Túnica verde
+            ctx.fillStyle = '#15803d';
+            ctx.beginPath();
+            ctx.moveTo(x + w * 0.2, y + h * 0.4);
+            ctx.lineTo(x + w * 0.8, y + h * 0.4);
+            ctx.lineTo(x + w, y + h * 0.9);
+            ctx.lineTo(x, y + h * 0.9);
+            ctx.closePath();
+            ctx.fill();
+
+            // Cabeza y Orejas largas
+            ctx.fillStyle = '#22c55e';
+            ctx.beginPath();
+            ctx.arc(x + w * 0.5, y + h * 0.3, w * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Oreja Izquierda Puntiaguda
+            ctx.beginPath();
+            ctx.moveTo(x + w * 0.2, y + h * 0.25);
+            ctx.lineTo(x - w * 0.2, y + h * 0.15);
+            ctx.lineTo(x + w * 0.2, y + h * 0.35);
+            ctx.fill();
+
+            // Oreja Derecha Puntiaguda
+            ctx.beginPath();
+            ctx.moveTo(x + w * 0.8, y + h * 0.25);
+            ctx.lineTo(x + w * 1.2, y + h * 0.15);
+            ctx.lineTo(x + w * 0.8, y + h * 0.35);
+            ctx.fill();
+
+            // Gorro clásico de duende
+            ctx.fillStyle = '#166534';
+            ctx.beginPath();
+            ctx.moveTo(x + w * 0.2, y + h * 0.15);
+            ctx.lineTo(x + w * 0.5, y - h * 0.1);
+            ctx.lineTo(x + w * 0.8, y + h * 0.15);
+            ctx.closePath();
+            ctx.fill();
+
+            // Patas diminutas veloces
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(x + w * 0.2, y + h * 0.9, 5, h * 0.1);
+            ctx.fillRect(x + w * 0.6, y + h * 0.9, 5, h * 0.1);
+        }
+
+        function drawAlienBoss(x, y, w, h) {
+            // Platillo o Cabina superior
+            ctx.fillStyle = '#a7f3d0';
+            ctx.beginPath();
+            ctx.arc(x + w * 0.5, y + h * 0.4, w * 0.25, Math.PI, 0);
+            ctx.fill();
+
+            // Cuerpo del Alien adentrado
+            ctx.fillStyle = '#818cf8';
+            ctx.fillRect(x + w * 0.42, y + h * 0.25, w * 0.16, h * 0.2);
+
+            // Base metálica de la Nave Invasora UFO
+            ctx.fillStyle = '#4f46e5';
+            ctx.beginPath();
+            ctx.ellipse(x + w * 0.5, y + h * 0.6, w * 0.45, h * 0.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Luces de la base de propulsión
+            ctx.fillStyle = '#fde047';
+            ctx.beginPath(); ctx.arc(x + w * 0.25, y + h * 0.6, 3, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x + w * 0.5, y + h * 0.65, 3, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x + w * 0.75, y + h * 0.6, 3, 0, Math.PI * 2); ctx.fill();
+        }
+
+        function drawBotBoss(x, y, w, h) {
+            // Antena de transmisión defectuosa
+            ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(x + w * 0.5, y + h * 0.2); ctx.lineTo(x + w * 0.5, y); ctx.stroke();
+            ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(x + w * 0.5, y, 4, 0, Math.PI*2); ctx.fill();
+
+            // Chasis Cabeza Cúbica
+            ctx.fillStyle = '#94a3b8'; ctx.fillRect(x + w * 0.2, y + h * 0.15, w * 0.6, h * 0.35);
+            // Chasis Cuerpo con Cables expuestos
+            ctx.fillStyle = '#475569'; ctx.fillRect(x + w * 0.1, y + h * 0.5, w * 0.8, h * 0.4);
+
+            // Ojos Láser Operacionales Ciclopes
+            ctx.fillStyle = (Math.random() > 0.3) ? '#ef4444' : '#fee2e2';
+            ctx.fillRect(x + w * 0.3, y + h * 0.25, w * 0.15, h * 0.1);
+            ctx.fillRect(x + w * 0.55, y + h * 0.25, w * 0.15, h * 0.1);
+
+            // Engranajes expuestos o detalles dañados
+            ctx.fillStyle = '#334155'; ctx.fillRect(x + w * 0.35, y + h * 0.65, w * 0.3, h * 0.15);
+        }
+
+        function drawMagoBoss(x, y, w, h) {
+            // Túnica Imperial Azul
+            ctx.fillStyle = '#1d4ed8';
+            ctx.beginPath();
+            ctx.moveTo(x + w * 0.3, y + h * 0.4);
+            ctx.lineTo(x + w * 0.7, y + h * 0.4);
+            ctx.lineTo(x + w * 0.9, y + h);
+            ctx.lineTo(x + w * 0.1, y + h);
+            ctx.closePath();
+            ctx.fill();
+
+            // Sombrero de Mago Puntiagudo Alto
+            ctx.fillStyle = '#1e3a8a';
+            ctx.beginPath();
+            ctx.moveTo(x + w * 0.1, y + h * 0.25);
+            ctx.lineTo(x + w * 0.5, y - h * 0.1);
+            ctx.lineTo(x + w * 0.9, y + h * 0.25);
+            ctx.closePath();
+            ctx.fill();
+
+            // Gran barba blanca pixelada
+            ctx.fillStyle = '#f8fafc';
+            ctx.beginPath();
+            ctx.moveTo(x + w * 0.35, y + h * 0.35);
+            ctx.lineTo(x + w * 0.65, y + h * 0.35);
+            ctx.lineTo(x + w * 0.5, y + h * 0.75);
+            ctx.closePath();
+            ctx.fill();
+
+            // Bastón del Vacío / Error 404
+            ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(x + w * 0.15, y + h); ctx.lineTo(x - 5, y + h * 0.1); ctx.stroke();
+            ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(x - 5, y + h * 0.1, 6, 0, Math.PI*2); ctx.fill();
+        }
+
 
         function updateGame() {
             if (gameOver || matrixActive) { requestAnimationFrame(updateGame); return; }
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. GESTIÓN DE TIMERS Y DEBUFFS
             if (powerupTimers.turbo > 0) powerupTimers.turbo--;
             if (powerupTimers.magnet > 0) powerupTimers.magnet--;
 
-            // Fondo visual según avance o Boss Fight
             let currentSpeed = baseSpeed;
             if (boss.active) {
-                document.body.style.background = "linear-gradient(135deg, #1e1b4b, #311042)"; // Púrpura alienígena espacial
-                currentSpeed = 0; // El escenario se detiene para pelear con el jefe
+                currentSpeed = 0;
+                document.body.style.background = "linear-gradient(135deg, #1e1b4b, #311042)";
             } else if (gameScore >= 200 && !godModeActive) {
                 currentSpeed = baseSpeed * 1.5;
-                document.body.style.background = "linear-gradient(135deg, #450a0a, #0f172a)"; // Rojo alerta meteorito
+                document.body.style.background = "linear-gradient(135deg, #450a0a, #0f172a)";
             } else {
                 document.body.style.background = "linear-gradient(135deg, #0f172a, #1e293b)";
             }
 
-            if (powerupTimers.turbo > 0) currentSpeed *= 1.8; // Velocidad warp con Turbo
+            if (powerupTimers.turbo > 0) currentSpeed *= 1.8;
 
-            // 2. FÍSICAS Y MOVIMIENTO DEL JUGADOR
             let currentGravity = inventory.gravity ? 0.28 : dino.gravity;
             dino.vy += currentGravity; dino.y += dino.vy;
             let floorY = 150 - dino.height;
             if (dino.y > floorY) { dino.y = floorY; dino.vy = 0; jumpsCount = 0; }
 
-            // 3. ACTIVACIÓN E INTRODUCCIÓN DEL BOSS ALIEN
-            if (gameScore >= 400 && !boss.active && boss.hp > 0) {
-                boss.active = true;
-                playTone(220, 'sawtooth', 0.5);
-            }
+            checkBossSpawns();
 
-            // 4. GENERACIÓN DE ENEMIGOS Y ITEMS DE MAPA (Solo si no hay jefe)
+            // Mover proyectiles aliados del Dragón Rojo
+            playerProjectiles.forEach((pp, idx) => {
+                pp.x += 6;
+                if (boss.active && pp.x > boss.x && pp.x < boss.x + boss.width && pp.y > boss.y && pp.y < boss.y + boss.height) {
+                    playerProjectiles.splice(idx, 1);
+                    boss.hp -= 12;
+                    playTone(400, 'triangle', 0.05);
+                }
+            });
+            playerProjectiles = playerProjectiles.filter(pp => pp.x < canvas.width);
+
+            // COMPORTAMIENTO GENERAL EN FASE NORMAL O JEFE
             if (!boss.active) {
-                // Cactus comunes
-                if (Math.random() < 0.012) {
-                    obstacles.push({ type: 'cactus', x: canvas.width, y: 125, width: 16, height: 25 });
-                }
-                // Pájaros cibernéticos (Puntaje > 100)
-                if (gameScore >= 100 && Math.random() < 0.007) {
-                    let birdHeights = [65, 100]; // Altura de salto u obligar a agacharse
-                    let targetY = birdHeights[Math.floor(Math.random() * birdHeights.length)];
-                    obstacles.push({ type: 'bird', x: canvas.width, y: targetY, width: 22, height: 14, wing: 0 });
-                }
-                // Meteoritos locos estilo glitch (Puntaje > 200)
-                if (gameScore >= 200 && Math.random() < 0.009) {
-                    obstacles.push({ type: 'meteor', x: Math.random() * 200 + 400, y: -20, width: 14, height: 14, vy: 3.5, vx: -4 });
-                }
-                // Monedas naturales y Power-Ups flotantes en el mapa
-                if (Math.random() < 0.02) {
-                    dynamicItems.push({ type: 'coin', x: canvas.width, y: Math.random() * 60 + 60, radius: 4 });
-                }
-                if (Math.random() < 0.0025) { // Aparición rara de buffs terrestres/aéreos
+                if (Math.random() < 0.012) obstacles.push({ type: 'cactus', x: canvas.width, y: 122, width: 18, height: 28 });
+                if (gameScore >= 100 && Math.random() < 0.007) obstacles.push({ type: 'bird', x: canvas.width, y: 75, width: 24, height: 16, wing: 0 });
+                if (gameScore >= 200 && Math.random() < 0.009) obstacles.push({ type: 'meteor', x: Math.random() * 200 + 400, y: -20, width: 14, height: 14, vy: 3.5, vx: -4 });
+                
+                if (Math.random() < 0.02) dynamicItems.push({ type: 'coin', x: canvas.width, y: Math.random() * 60 + 60, radius: 4 });
+                if (Math.random() < 0.0025) {
                     let pool = ['turbo', 'doublejump', 'magnet'];
                     dynamicItems.push({ type: pool[Math.floor(Math.random() * pool.length)], x: canvas.width, y: 110, width: 14, height: 14 });
                 }
             } else {
-                // LÓGICA DEL COMPORTAMIENTO DEL JEFE ALIEN
-                // Entrada a la pantalla
-                if (boss.x > 480) boss.x -= 2;
+                if (boss.x > 450) boss.x -= 2;
                 
-                // Patrón de movimiento vertical flotante
                 boss.y += 0.8 * boss.direction;
-                if (boss.y > 75 || boss.y < 15) boss.direction *= -1;
+                if (boss.y > 75 || boss.y < 10) boss.direction *= -1;
 
-                // Lanzamiento de proyectiles de Lag
                 boss.shootCooldown++;
-                if (boss.shootCooldown >= 70) {
+                
+                if (boss.type === 'alien' && boss.shootCooldown >= 75) {
                     boss.shootCooldown = 0;
-                    projectiles.push({ x: boss.x, y: boss.y + 20, radius: 6, vx: -4 });
-                    playTone(300, 'triangle', 0.1);
+                    projectiles.push({ x: boss.x, y: boss.y + boss.height/2, radius: 6, vx: -4, color: '#a855f7' });
+                } else if (boss.type === 'broken_bot' && boss.shootCooldown >= 50) {
+                    boss.shootCooldown = 0;
+                    projectiles.push({ x: boss.x, y: boss.y + 20, radius: 5, vx: -6, color: '#f59e0b' });
+                    setTimeout(() => { if(boss.active) projectiles.push({ x: boss.x, y: boss.y + 40, radius: 5, vx: -6, color: '#f59e0b' })}, 150);
+                } else if (boss.type === 'blue_screen' && boss.shootCooldown >= 90) {
+                    boss.shootCooldown = 0;
+                    projectiles.push({ x: boss.x, y: dino.y + 10, radius: 10, vx: -3.8, color: '#3b82f6' });
+                } else if (boss.type === 'dragon_final' && boss.shootCooldown >= 40) {
+                    boss.shootCooldown = 0;
+                    projectiles.push({ x: boss.x, y: boss.y + boss.height/2, radius: 8, vx: -5, color: '#ef4444' });
+                    projectiles.push({ x: boss.x + 20, y: boss.y + 15, radius: 6, vx: -4.5, color: '#f97316' });
                 }
 
-                // Generar DroidCoins de plasma dañinas para el alien si las agarras
-                if (Math.random() < 0.035) {
-                    dynamicItems.push({ type: 'plasmacoin', x: canvas.width, y: Math.random() * 70 + 50, radius: 5 });
-                }
+                if (Math.random() < 0.04) dynamicItems.push({ type: 'plasmacoin', x: canvas.width, y: Math.random() * 70 + 50, radius: 5 });
             }
 
-            // 5. ACTUALIZACIÓN DE ENEMIGOS Y PROYECTILES
+            // Actualización de obstáculos regulares
             obstacles.forEach(obs => {
-                if (obs.type === 'meteor') {
-                    obs.x += obs.vx; obs.y += obs.vy;
-                } else {
-                    obs.x -= currentSpeed;
-                }
-                // Animación simple de alas para el pájaro
-                if (obs.type === 'bird') { obs.wing += 0.15; }
+                if (obs.type === 'meteor') { obs.x += obs.vx; obs.y += obs.vy; } 
+                else { obs.x -= currentSpeed; }
+                if (obs.type === 'bird') obs.wing += 0.15;
 
-                // Sistema de Puntaje al esquivarlos
                 if (obs.x + obs.width <= dino.x && !obs.counted) {
                     obs.counted = true; gameScore += 10; updateCoins(godModeActive ? 5 : 1);
                     playTone(880, 'sine', 0.02);
                 }
             });
-            // Filtrar elementos fuera del lienzo
             obstacles = obstacles.filter(obs => obs.x + 30 > 0 && obs.y < 160);
 
-            projectiles.forEach(p => {
-                p.x += p.vx;
-                // Si el jugador salta limpiamente sobre el proyectil del Boss, daña indirectamente al Alien
-                if (p.x <= dino.x && !p.counted) {
-                    p.counted = true; boss.hp -= 8; playTone(440, 'triangle', 0.1);
-                }
-            });
+            // Movimiento de proyectiles enemigos e impacto pasivo
+            projectiles.forEach(p => { p.x += p.vx; });
             projectiles = projectiles.filter(p => p.x + 10 > 0);
 
-            // Actualización de Items (Atracción por imán activa)
+            // Imán de Monedas
             dynamicItems.forEach(item => {
                 if (powerupTimers.magnet > 0 || item.type === 'plasmacoin') {
-                    // Vector de atracción hacia el T-Rex
                     let dx = dino.x - item.x; let dy = dino.y - item.y;
                     let dist = Math.sqrt(dx*dx + dy*dy);
                     if (dist < 160) { item.x += (dx/dist) * 5; item.y += (dy/dist) * 5; }
                     else { item.x -= currentSpeed; }
-                } else {
-                    item.x -= currentSpeed;
-                }
+                } else { item.x -= currentSpeed; }
             });
-            dynamicItems = dynamicItems.filter(item => (item.x + 20 > 0));
+            dynamicItems = dynamicItems.filter(item => item.x + 20 > 0);
 
-            // 6. DETECCIÓN DE COLISIONES E INTERACCIONES (ITEMS)
+            // Colisiones con ítems
             dynamicItems.forEach((item, index) => {
                 let ix = item.x, iy = item.y, iw = item.width || item.radius*2, ih = item.height || item.radius*2;
                 if (dino.x < ix + iw && dino.x + dino.width > ix && dino.y < iy + ih && dino.y + dino.height > iy) {
-                    // Recolección exitosa
                     dynamicItems.splice(index, 1);
-                    if (item.type === 'coin') {
-                        updateCoins(2); playTone(987.77, 'sine', 0.05);
-                    } else if (item.type === 'plasmacoin') {
-                        boss.hp -= 15; updateCoins(5); playTone(1200, 'sine', 0.05);
-                    } else if (item.type === 'turbo') {
-                        powerupTimers.turbo = 180; unlockAchievement('ach-turbo'); playTone(700, 'square', 0.3);
-                    } else if (item.type === 'doublejump') {
-                        inventory.doubleJump = true; playTone(600, 'sine', 0.2);
-                    } else if (item.type === 'magnet') {
-                        powerupTimers.magnet = 300; playTone(500, 'triangle', 0.2);
-                    }
+                    if (item.type === 'coin') { updateCoins(2); playTone(987.77, 'sine', 0.05); } 
+                    else if (item.type === 'plasmacoin') { boss.hp -= 15; updateCoins(5); playTone(1200, 'sine', 0.05); } 
+                    else if (item.type === 'turbo') { powerupTimers.turbo = 180; unlockAchievement('ach-turbo'); playTone(700, 'square', 0.3); } 
+                    else if (item.type === 'doublejump') { inventory.doubleJump = true; playTone(600, 'sine', 0.2); } 
+                    else if (item.type === 'magnet') { powerupTimers.magnet = 300; playTone(500, 'triangle', 0.2); }
                     updateShopUI();
                 }
             });
 
-            // Condición de Victoria sobre el Boss Alien
+            // Derrota de Jefes
             if (boss.active && boss.hp <= 0) {
-                boss.active = false; boss.hp = 0; gameScore += 150; updateCoins(100);
-                unlockAchievement('ach-alien');
-                playTone(1000, 'sine', 0.5);
-                alert("👽 ¡ALMIGHTY DEFEATED! Expulsaste al Alien del Lag de tu driver de video. Recompensa: ¡+100 DroidCoins! 🪙");
+                boss.active = false; gameScore += 150; updateCoins(80);
+                if(boss.type === 'alien') unlockAchievement('ach-alien');
+                playTone(1000, 'sine', 0.4);
+                alert(`💥 ¡${boss.name} DERROTADO! +80 DroidCoins agregadas.`);
             }
 
-            // 7. RENDERIZACIÓN DE GRÁFICOS CANVAS
-            // Dibujar T-Rex
-            ctx.fillStyle = powerupTimers.turbo > 0 ? '#ef4444' : skinColors[equippedSkin];
-            ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+            // --- LLAMADOS AL RENDERIZADO DETALLADO SEGÚN SKIN ---
+            let displayColor = powerupTimers.turbo > 0 ? '#ef4444' : skinColors[equippedSkin];
             
-            // Ojo del T-Rex
-            ctx.fillStyle = '#0f172a'; ctx.fillRect(dino.x + (dino.width * 0.68), dino.y + 4, 3, 3);
+            if (equippedSkin === 'cyan' || equippedSkin === 'gold') {
+                drawTRex(dino.x, dino.y, dino.width, dino.height, displayColor);
+            } else if (equippedSkin === 'dragon') {
+                drawDragon(dino.x, dino.y, dino.width, dino.height, displayColor);
+            } else if (equippedSkin === 'goblin') {
+                drawGoblin(dino.x, dino.y, dino.width, dino.height);
+            }
 
-            // Escudo Protector Comprado Activo
-            if (inventory.shield > 0) {
-                ctx.strokeStyle = '#c084fc'; ctx.lineWidth = 2;
+            // Escudo de Energía HUD
+            if (inventory.shield > 0 || godModeActive) {
+                ctx.strokeStyle = godModeActive ? '#f59e0b' : '#c084fc'; ctx.lineWidth = 2;
                 ctx.strokeRect(dino.x - 4, dino.y - 4, dino.width + 8, dino.height + 8);
             }
 
-            // Dibujar Obstáculos (Cactus, Pájaros, Meteoritos)
+            // Dibujar proyectiles de fuego del Dragón
+            ctx.fillStyle = '#f97316';
+            playerProjectiles.forEach(pp => { ctx.beginPath(); ctx.arc(pp.x, pp.y, 5, 0, Math.PI*2); ctx.fill(); });
+
+            // Dibujar obstáculos con diseño
             obstacles.forEach(obs => {
                 if (obs.type === 'cactus') {
-                    ctx.fillStyle = '#f87171'; ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                    // Diseño vectorial de cactus tradicional
+                    ctx.fillStyle = '#22c55e';
+                    ctx.fillRect(obs.x + obs.width*0.3, obs.y, obs.width*0.4, obs.height); // Tronco
+                    ctx.fillRect(obs.x, obs.y + obs.height*0.3, obs.width, obs.height*0.15); // Ramas horizontales
+                    ctx.fillRect(obs.x, obs.y + obs.height*0.1, obs.width*0.2, obs.height*0.25);
+                    ctx.fillRect(obs.x + obs.width*0.8, obs.y + obs.height*0.1, obs.width*0.2, obs.height*0.25);
                 } else if (obs.type === 'bird') {
-                    ctx.fillStyle = '#38bdf8'; ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-                    // Ala oscilante artísitica
-                    ctx.fillStyle = '#0ea5e9';
-                    let wingOffset = Math.sin(obs.wing) > 0 ? -5 : 5;
-                    ctx.fillRect(obs.x + 6, obs.y + wingOffset, 8, 5);
+                    // Ave con alas articuladas
+                    ctx.fillStyle = '#38bdf8';
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + obs.width*0.5, obs.y + obs.height*0.5, obs.width*0.5, obs.height*0.3, 0, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillStyle = '#f59e0b'; // Pico
+                    ctx.fillRect(obs.x, obs.y + obs.height*0.4, 5, 4);
                 } else if (obs.type === 'meteor') {
-                    ctx.fillStyle = '#f97316'; ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-                    ctx.fillStyle = '#ef4444'; ctx.fillRect(obs.x + 3, obs.y - 4, obs.width - 6, 4); // Estela
+                    ctx.fillStyle = '#f97316'; ctx.beginPath(); ctx.arc(obs.x+7, obs.y+7, 7, 0, Math.PI*2); ctx.fill();
                 }
             });
 
-            // Dibujar Balas del Alien
-            ctx.fillStyle = '#a855f7';
-            projectiles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill(); });
+            projectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill(); });
 
-            // Dibujar Items y Monedas
             dynamicItems.forEach(item => {
-                if (item.type === 'coin') {
-                    ctx.fillStyle = '#eab308'; ctx.beginPath(); ctx.arc(item.x, item.y, item.radius, 0, Math.PI*2); ctx.fill();
-                } else if (item.type === 'plasmacoin') {
-                    ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(item.x, item.y, item.radius, 0, Math.PI*2); ctx.fill();
-                } else {
-                    // Buffs contenedores icónicos
+                if (item.type === 'coin') { ctx.fillStyle = '#eab308'; ctx.beginPath(); ctx.arc(item.x, item.y, item.radius, 0, Math.PI*2); ctx.fill(); } 
+                else if (item.type === 'plasmacoin') { ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(item.x, item.y, item.radius, 0, Math.PI*2); ctx.fill(); } 
+                else {
                     ctx.fillStyle = item.type === 'turbo' ? '#ef4444' : (item.type === 'doublejump' ? '#22c55e' : '#3b82f6');
                     ctx.fillRect(item.x, item.y, item.width, item.height);
                 }
             });
 
-            // Dibujar la interfaz gráfica del BOSS ALIEN si está activo
+            // --- LLAMADO AL RENDERIZADO DE JEFES SEGÚN SU ETAPA ---
             if (boss.active) {
-                // Cuerpo de la Nave Nodriza
-                ctx.fillStyle = '#6366f1'; ctx.fillRect(boss.x, boss.y, boss.width, boss.height);
-                ctx.fillStyle = '#4f46e5'; ctx.fillRect(boss.x + 10, boss.y + 10, boss.width - 20, boss.height - 20);
-                // Escotilla brillante del alien
-                ctx.fillStyle = '#22c55e'; ctx.fillRect(boss.x + 25, boss.y + 12, 20, 8);
+                if (boss.type === 'alien') {
+                    drawAlienBoss(boss.x, boss.y, boss.width, boss.height);
+                } else if (boss.type === 'broken_bot') {
+                    drawBotBoss(boss.x, boss.y, boss.width, boss.height);
+                } else if (boss.type === 'blue_screen') {
+                    drawMagoBoss(boss.x, boss.y, boss.width, boss.height);
+                } else if (boss.type === 'dragon_final') {
+                    drawDragon(boss.x, boss.y, boss.width, boss.height, '#991b1b', true);
+                }
+                
+                // Texto de Nombre e Interfaz de Salud del Jefe
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 10px monospace';
+                ctx.fillText(boss.name, boss.x, boss.y - 18);
 
-                // Barra de Vida HUD del Jefe superior
-                ctx.fillStyle = '#1e1b4b'; ctx.fillRect(boss.x - 15, boss.y - 15, boss.width + 30, 6);
+                ctx.fillStyle = '#1e1b4b'; ctx.fillRect(boss.x, boss.y - 10, boss.width, 6);
                 let hpPercent = boss.hp / boss.maxHp;
-                ctx.fillStyle = '#ef4444'; ctx.fillRect(boss.x - 15, boss.y - 15, (boss.width + 30) * hpPercent, 6);
+                ctx.fillStyle = '#ef4444'; ctx.fillRect(boss.x, boss.y - 10, boss.width * hpPercent, 6);
             }
 
-            // HUD del puntaje clásico
             ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 12px monospace';
             ctx.fillText(`SCORE: ${gameScore}`, 15, 22);
-            if (godModeActive) ctx.fillText(`[GM EN FORZA]`, 15, 38);
+            if (godModeActive) ctx.fillText(`[GM ACTIVADO]`, 15, 38);
 
-            // 8. LOGIC DE DAÑO E IMPACTOS EN JUGADOR
+            // CONTROL DE IMPACTO / GAME OVER
             if (!godModeActive && powerupTimers.turbo <= 0) {
-                // Combinar colisión de obstáculos estándar y proyectiles alienígenas
                 let hitDetected = false;
 
                 obstacles.forEach((obs, index) => {
@@ -680,17 +997,12 @@
                     if (inventory.shield > 0) {
                         inventory.shield--; updateShopUI(); playTone(600, 'sine', 0.15);
                     } else {
-                        // GAME OVER FINAL TRISTE
                         gameOver = true; playTone(150, 'sawtooth', 0.4);
-                        
-                        // Evaluar apuesta de Javier
                         if (activeChallenge) {
-                            if (gameScore > 30) { updateCoins(15); alert("🎉 ¡Humillaste a Javier! Ganaste la apuesta de +15 🪙."); }
-                            else { updateCoins(-5); alert("🦆 Perdiste la apuesta... Javier se burló de ti y te restamos 5 DroidCoins."); }
+                            if (gameScore > 30) { updateCoins(15); alert("🎉 ¡Apuesta ganada a Javier!"); } 
+                            else { updateCoins(-5); alert("🦆 Perdiste ante Javier."); }
                             activeChallenge = false;
                         }
-
-                        // Reset de buffs temporales al morir
                         inventory.gravity = false; inventory.doubleJump = false;
                         let topScore = localStorage.getItem('droid_highscore') || 0;
                         if (gameScore > topScore) { localStorage.setItem('droid_highscore', gameScore); renderLeaderboard(); }
@@ -703,38 +1015,42 @@
             requestAnimationFrame(updateGame);
         }
 
-        // CONTROL DE SALTOS DEL CANVAS (SOPORTE DOBLE SALTO)
-        canvas.addEventListener('click', () => {
+        // Lógica de Salto y Controles Globales
+        function handleJumpAction() {
             if (matrixActive) return;
             let floorY = 150 - dino.height;
 
             if (!gameOver) {
+                let maxJumps = (equippedSkin === 'goblin' || inventory.doubleJump) ? 2 : 1;
                 if (dino.y === floorY) {
-                    // Primer salto normal
                     jumpsCount = 1;
                     dino.vy = godModeActive ? -14 : (inventory.gravity ? -8.0 : -10.8);
                     playTone(330, 'square', 0.07);
-                } else if (inventory.doubleJump && jumpsCount === 1) {
-                    // Segundo salto en el aire concedido por power-up
-                    jumpsCount = 2;
+                } else if (jumpsCount < maxJumps) {
+                    jumpsCount++;
                     dino.vy = inventory.gravity ? -7.0 : -9.5;
                     playTone(493.88, 'square', 0.07);
                 }
             } else {
                 resetGameEntities();
             }
-        });
-
-        // --- MODO DIOS OMNIPOTENTE ---
-        let godModeActive = false;
-        function activateGodMode() {
-            godModeActive = !godModeActive; const title = document.getElementById('arcadeTitle');
-            if (godModeActive) { title.textContent = "🔥 MODO DIOS INICIADO"; dino.height = 45; dino.width = 45; updateCoins(100); }
-            else { title.textContent = "🎮 ARCADE CENTER"; dino.height = 26; dino.width = 26; }
         }
+
+        canvas.addEventListener('click', handleJumpAction);
+
+        // Soporte para Teclado Completo
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'p' || e.key === 'P') triggerPanic();
+            if (e.key === ' ' || e.key === 'ArrowUp') { e.preventDefault(); handleJumpAction(); }
+            if ((e.key === 'f' || e.key === 'F') && equippedSkin === 'dragon' && !gameOver) {
+                playerProjectiles.push({ x: dino.x + dino.width, y: dino.y + dino.height/2 });
+                playTone(450, 'sine', 0.06);
+            }
+        });
 
         // --- MODO RED INTERRUPTOR ---
         function setConnection(type) {
+            connectionMode = type;
             document.getElementById('btnWifi').classList.toggle('active', type === 'wifi');
             document.getElementById('btnUsb').classList.toggle('active', type === 'usb');
             const status = document.getElementById('connStatus');
@@ -774,9 +1090,6 @@
             }
             requestAnimationFrame(draw);
         }
-
-        // Gatillo Teclado (Pánico instantáneo)
-        window.addEventListener('keydown', (e) => { if (e.key === 'p' || e.key === 'P') triggerPanic(); });
 
         // --- COMENTARIOS LOCALSTORAGE ---
         const defaultComments = [{user: "Garrett", text: "¡Te quedó genial la interfaz de instalación! Muy clara explicada."}];
