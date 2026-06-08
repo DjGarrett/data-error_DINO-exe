@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cómo instalar DroidCam por Garrett</title>
+
+    <style>
+        /* --- ESTILOS GENERALES Y FONDO DINÁMICO --- */
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #f1f5f9;
+            margin: 0; padding: 40px 20px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; box-sizing: border-box; overflow-x: hidden; position: relative;
+            transition: background 1s ease;
+        }
+
+        /* Rastro del Cursor */
+        .cursor-particle {
+            position: fixed; width: 6px; height: 6px; background: #38bdf8; border-radius: 50%;
+            pointer-events: none; z-index: 10000; transform: translate(-50%, -50%); opacity: 0.8; transition: transform 0.1s linear, opacity 0.4s;
+        }
+
+        /* --- FONDO ANIMADO --- */
+        .background-animation {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; overflow: hidden;
+        }
+        .particle {
+            position: absolute; background: linear-gradient(transparent, rgba(56, 189, 248, 0.2)); width: 2px; height: 80px; animation: fall linear infinite;
+        }
+        .particle:nth-child(1) { left: 10%; animation-duration: 4s; }
+        .particle:nth-child(2) { left: 30%; animation-duration: 6s; animation-delay: 2s; }
+        .particle:nth-child(3) { left: 55%; animation-duration: 5s; animation-delay: 1s; }
+        .particle:nth-child(4) { left: 75%; animation-duration: 7s; animation-delay: 3s; }
+        .particle:nth-child(5) { left: 90%; animation-duration: 4.5s; }
+
+        @keyframes fall {
+            0% { transform: translateY(-100px); opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { transform: translateY(110vh); opacity: 0; }
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .container {
+            background-color: rgba(30, 41, 59, 0.75); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 650px; width: 100%; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.8s ease-out; z-index: 1; text-align: center;
+        }
+
+        h1 { color: #38bdf8; font-size: 2.2rem; margin-top: 0; margin-bottom: 25px; text-shadow: 0 2px 10px rgba(56, 189, 248, 0.2); cursor: pointer; user-select: none; }
+        
+        /* Glitch Efecto para Nombres */
+        .glitch-name { position: relative; display: inline-block; cursor: pointer; color: #ef4444; font-weight: bold;}
+        .glitch-name:hover::after {
+            content: 'javier no le sabe'; position: absolute; left: 2px; top: 2px; width: 100%; height: 100%;
+            background: #0f172a; color: #38bdf8; overflow: hidden; clip: rect(0, 900px, 0, 0); 
+            animation: glitch-anim 0.4s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim { 0% { clip: rect(12px, 9999px, 30px, 0); } 100% { clip: rect(2px, 9999px, 15px, 0); } }
+
+        .animated-image { max-width: 100%; height: auto; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
+
+        .paso {
+            background-color: rgba(255, 255, 255, 0.03); padding: 15px 20px; margin-bottom: 12px; border-left: 4px solid #38bdf8;
+            border-radius: 0 8px 8px 0; font-size: 16px; transition: all 0.3s ease; text-align: left;
+        }
+        .paso:hover { background-color: rgba(56, 189, 248, 0.1); transform: translateX(8px); }
+        hr { border: 0; height: 1px; margin: 30px 0; background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent); }
+
+        /* --- SIMULADOR DE CONEXIÓN --- */
+        .conn-container { background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 12px; margin: 20px 0; }
+        .switch-btn {
+            background: #334155; color: #fff; border: none; padding: 8px 16px; margin: 5px; cursor: pointer; border-radius: 6px; font-weight: bold; transition: all 0.3s;
+        }
+        .switch-btn.active { background: #38bdf8; color: #0f172a; box-shadow: 0 0 10px #38bdf8; }
+        .status-display { margin-top: 10px; font-size: 14px; color: #38bdf8; font-weight: bold; }
+
+        /* --- BOTONES DIVERTIDOS EXTRAS --- */
+        .extra-buttons { display: flex; gap: 10px; justify-content: center; margin: 15px 0; }
+        .btn-troll { background: #ea580c; border: none; color: white; padding: 8px 15px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.2s; font-size: 13px;}
+        .btn-troll:hover { background: #c2410c; }
+
+        /* --- PANTALLA ROTA (BROMA) --- */
+        #brokenScreen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99999; pointer-events: none; display: none;
+            background: url('https://user-images.githubusercontent.com/50711925/170547071-807e3881-bfdc-4ff4-bd34-cc2bfeb3a4b9.png') no-repeat center center; background-size: cover;
+        }
+
+        /* --- MODO PÁNICO --- */
+        #panicScreen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #ffffff; color: #000000; z-index: 100000; display: none; padding: 40px; box-sizing: border-box; text-align: left; font-family: sans-serif; overflow-y: auto;
+        }
+
+        /* --- BROMA DE VALIDADOR DE IP --- */
+        .ip-validator { background: rgba(30, 41, 59, 0.9); border: 1px dashed #ef4444; padding: 20px; border-radius: 12px; margin: 25px 0; text-align: center; }
+        .ip-input { background: #0f172a; border: 1px solid #475569; color: #4ade80; padding: 10px; border-radius: 6px; font-family: monospace; text-align: center; font-size: 16px; width: 200px; margin-right: 10px; }
+        .ip-btn { background: #ef4444; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+
+        /* PANTALLA MATRIX */
+        #matrixOverlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; z-index: 9999; display: none; overflow: hidden; box-sizing: border-box;
+        }
+        #matrixCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .hack-ui {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; text-align: center; width: 90%; max-width: 500px;
+            background: rgba(0, 0, 0, 0.85); border: 3px solid #ef4444; padding: 30px; border-radius: 12px; box-shadow: 0 0 40px #ef4444; font-family: monospace;
+        }
+        .hack-title { color: #ef4444; font-size: 24px; font-weight: bold; margin-bottom: 15px; animation: blink 0.6s infinite alternate; }
+        .countdown-box { color: #f59e0b; font-size: 40px; font-weight: bold; margin: 15px 0; }
+        #abortBtn {
+            position: absolute; background: #ef4444; color: black; border: 2px solid white; font-weight: bold; font-size: 16px;
+            padding: 12px 24px; border-radius: 8px; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 15px #ef4444;
+            transition: top 0.1s ease, left 0.1s ease; z-index: 10;
+        }
+
+        /* --- CHISTE --- */
+        .btn-reveal { background-color: #38bdf8; color: #0f172a; border: none; padding: 10px 20px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .joke-answer { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s ease; color: #4ade80; font-weight: bold; margin-top: 15px; }
+        .joke-answer.show { max-height: 50px; opacity: 1; }
+
+        /* --- MINI JUEGO, RANKING Y TIENDA --- */
+        .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        #gameCanvas { background-color: #0f172a; border: 2px solid #334155; border-radius: 8px; display: block; margin: 0 auto; max-width: 100%; cursor: pointer; }
+        .audio-toggle { background: none; border: 1px solid #475569; color: #94a3b8; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+        .arcade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; text-align: left; }
+        .arcade-panel { background: rgba(15, 23, 42, 0.5); padding: 15px; border-radius: 10px; border: 1px solid #334155; }
+        .arcade-panel h4 { margin: 0 0 10px 0; color: #38bdf8; font-size: 14px; text-transform: uppercase; }
+
+        .leaderboard-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 4px; border-bottom: 1px dashed #1e293b; transition: background 0.2s;}
+        .leaderboard-row.clickable { cursor: pointer; }
+        .leaderboard-row.clickable:hover { background: rgba(239, 68, 68, 0.15); }
+        .leaderboard-row.highlight { color: #f59e0b; font-weight: bold; }
+
+        .shop-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; }
+        .shop-btn { background: #334155; border: none; color: white; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .shop-btn.equipped { background: #f59e0b; color: #0f172a; font-weight: bold; }
+        
+        /* Inventario Visual HUD */
+        .inventory-hud { display: flex; gap: 10px; justify-content: center; margin-top: 8px; font-size: 11px; color: #cbd5e1; flex-wrap: wrap; }
+        .inv-badge { background: #1e293b; padding: 2px 8px; border-radius: 20px; border: 1px solid #475569; }
+        .inv-badge.active-item { border-color: #a855f7; color: #c084fc; box-shadow: 0 0 5px rgba(168, 85, 247, 0.5); }
+        .inv-badge.powerup-active { border-color: #eab308; color: #fde047; font-weight: bold; }
+
+        /* Contenedor de Logros */
+        .achievements { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+        .ach-card { background: #1e293b; padding: 8px; border-radius: 6px; font-size: 10px; color: #64748b; border: 1px solid #334155; text-align: center; }
+        .ach-card.unlocked { color: #f59e0b; border-color: #f59e0b; background: rgba(245, 158, 11, 0.1); animation: pulse 0.5s ease-in-out; }
+
+        /* --- CAJA DE COMENTARIOS --- */
+        .comment-form input, .comment-form textarea { width: 100%; background: #1e293b; border: 1px solid #334155; padding: 10px; border-radius: 6px; color: white; margin-bottom: 10px; box-sizing: border-box; }
+        .comment-form button { background: #4ade80; color: #0f172a; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .comment-list { margin-top: 15px; max-height: 160px; overflow-y: auto; }
+        .comment { background: rgba(255,255,255,0.02); padding: 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #334155; }
+        .comment-author { font-weight: bold; color: #38bdf8; font-size: 14px; }
+
+        .btn-nav { display: inline-block; background-color: #38bdf8; color: #0f172a; padding: 10px 20px; font-weight: bold; border-radius: 8px; text-decoration: none; margin-top: 30px; }
+
+        @keyframes blink { from { opacity: 1; } to { opacity: 0.3; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @media (max-width: 700px) { .container { padding: 20px; } .achievements { grid-template-columns: repeat(2, 1fr); } .arcade-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div id="brokenScreen" onclick="repairScreen()"></div>
+
+    <div id="panicScreen" onclick="closePanic()">
+        <h1 style="color: black; border-bottom: 1px solid #a2a9b1; font-family: serif; font-size: 28px; text-align: left;">Scarabaeus viettei</h1>
+        <p style="font-size: 14px; line-height: 1.6;"><i><b>Scarabaeus viettei</b></i> es una especie de coleóptero escarabeido de la subfamilia Scarabaeinae. Se distribuye principalmente en las regiones arenas de África occidental y Madagascar...</p>
+        <p style="color: #64748b; font-size: 11px; margin-top: 40px;">(Haz clic en cualquier parte para volver)</p>
+    </div>
+
+    <div class="background-animation" id="bgAnim">
+        <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    </div>
+
+    <div id="matrixOverlay">
+        <canvas id="matrixCanvas"></canvas>
+        <div class="hack-ui">
+            <div class="hack-title">🚨 ¡SISTEMA CRÍTICO HACKEADO! 🚨</div>
+            <div class="hack-text">
+                Se ha detectado una IP inválida o maliciosa. Conflicto severo en el driver de DroidCam.<br><br>
+                <span style="color:#ef4444; font-weight:bold;">ACCION CORRECTIVA DE RED:</span> Encriptando archivos locales y enviando tu historial de navegación completo a **tu mamá**.
+            </div>
+            <div class="countdown-box" id="timerBox">10</div>
+            <div style="font-size:11px; color:#64748b;">Subiendo paquetes... Conexión remota establecida.</div>
+        </div>
+        <button id="abortBtn" onmouseover="dodgeButton()">¡Abortar Hackeo!</button>
+    </div>
+
+    <div class="container">
+        <h1 ondblclick="activateGodMode()">Cómo instalar DroidCam por <span style="text-decoration: underline;">Garrett</span></h1>
+
+        <img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2FhN2ZlNGRmYjdlNWQ1YzUzY2NjZGJlNWU5NjYzZTcxMzIxYjc4ZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oKIPnAiaMCws8nOsE/giphy.gif" alt="Programador" class="animated-image">
+
+        <div class="paso" onmouseover="trackSteps(1)">1. Descarga e instala DroidCam en tu PC desde su sitio oficial.</div>
+        <div class="paso" onmouseover="trackSteps(2)">2. Descarga e instala la aplicación DroidCam en tu teléfono Android desde Google Play.</div>
+        <div class="paso" onmouseover="trackSteps(3)">3. Conecta tu teléfono a la misma red Wi-Fi que tu PC o usa un cable USB para una conexión más estable.</div>
+        <div class="paso" onmouseover="trackSteps(4)">4. Abre DroidCam en tu PC y en tu teléfono, luego ingresa la dirección IP que aparece en el teléfono en el programa de PC.</div>
+        <div class="paso" onmouseover="trackSteps(5)">5. Haz clic en "Start" en el programa de PC para comenzar a usar tu teléfono como cámara web.</div>
+
+        <div class="extra-buttons">
+            <button class="btn-troll" onclick="breakMyScreen()">💥 Romper Pantalla</button>
+            <button class="btn-troll" style="background:#06b6d4;" onclick="triggerPanic()">🤫 Botón del Pánico (Tecla P)</button>
+        </div>
+
+        <div class="ip-validator">
+            <h3 style="color:#38bdf8; margin:0 0 10px 0; font-size:16px;">🔍 Validador Oficial de IP (Paso 4)</h3>
+            <p style="font-size:13px; color:#94a3b8; margin: 0 0 15px 0;">Ingresa la IP que te dio tu teléfono para verificar si es segura antes de configurarla.</p>
+            <input type="text" class="ip-input" id="ipInputField" placeholder="192.168.1.50" value="192.168.">
+            <button class="ip-btn" onclick="triggerHackBroma()">Verificar Conexión</button>
+        </div>
+
+        <div class="conn-container">
+            <div>Selecciona el método de conexión para ver estabilidad:</div>
+            <button class="switch-btn active" id="btnWifi" onclick="setConnection('wifi')">Modo Wi-Fi</button>
+            <button class="switch-btn" id="btnUsb" onclick="setConnection('usb')">Modo Cable USB</button>
+            <div class="status-display" id="connStatus">📶 Latencia Variable (Depende del router)</div>
+        </div>
+
+        <hr>
+
+        <div class="joke-section">
+            <div class="joke-question">¿Por qué los programadores confunden Halloween con Navidad?</div>
+            <button class="btn-reveal" onclick="revealJoke()">Revelar respuesta</button>
+            <div class="joke-answer">Because OCT 31 == DEC 25.</div>
+        </div>
+
+        <hr>
+
+        <div class="game-header">
+            <div class="game-title" id="arcadeTitle" style="margin:0; font-weight:bold;">🎮 ARCADE CENTER</div>
+            <button class="audio-toggle" id="muteBtn" onclick="toggleMute()">🔊 Sonido ON</button>
+        </div>
+        
+        <canvas id="gameCanvas" width="600" height="150"></canvas>
+        
+        <div class="inventory-hud">
+            <span>🎒 Inventario:</span>
+            <div class="inv-badge" id="hud-shield">🛡️ Escudo: x0</div>
+            <div class="inv-badge" id="hud-gravity">🌙 Gravedad: OFF</div>
+            <div class="inv-badge" id="hud-doublejump">👟 Doble Salto: OFF</div>
+            <div class="inv-badge" id="hud-turbo">⚡ Turbo: OFF</div>
+        </div>
+
+        <div class="arcade-grid">
+            <div class="arcade-panel">
+                <h4>🏆 TOP MARCAS (Clic en alguien para retar)</h4>
+                <div id="leaderboardBoard"></div>
+            </div>
+            
+            <div class="arcade-panel">
+                <h4>💰 TIENDA MULTIUSO (<span id="coinCount">0</span> 🪙)</h4>
+                <div class="shop-item">
+                    <span>🔷 T-Rex Cyan</span>
+                    <button class="shop-btn equipped" id="skin-cyan" onclick="equipSkin('cyan')">Equipar</button>
+                </div>
+                <div class="shop-item">
+                    <span>👑 Premium Gold</span>
+                    <button class="shop-btn" id="skin-gold" onclick="buySkin('gold', 50)">Comprar (50 🪙)</button>
+                </div>
+                <div style="border-top:1px solid #334155; margin:6px 0; padding-top:6px; font-weight:bold; color:#a855f7; font-size:11px;">ITEMS DE SUPERVIVENCIA</div>
+                <div class="shop-item">
+                    <span>🛡️ Escudo Contra Cactus</span>
+                    <button class="shop-btn" style="background:#a855f7;" onclick="buyPowerUp('shield', 15)">Comprar (15 🪙)</button>
+                </div>
+                <div class="shop-item">
+                    <span>🌙 Poción Gravedad Lunar</span>
+                    <button class="shop-btn" style="background:#a855f7;" onclick="buyPowerUp('gravity', 30)">Comprar (30 🪙)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="achievements">
+            <div class="ach-card" id="ach-curious">🃏 Curioso<br>Viste el chiste</div>
+            <div class="ach-card" id="ach-reader">⚡ Explorador<br>Leíste los pasos</div>
+            <div class="ach-card" id="ach-score50">Rex Novato<br>50 pts</div>
+            <div class="ach-card" id="ach-alien">🛸 Día de la Indep.<br>Venciste al Alien</div>
+            <div class="ach-card" id="ach-broken">🛠️ ¿Qué rompí?<br>Pantalla rota</div>
+            <div class="ach-card" id="ach-panic">🕵️ Paranoico<br>Modo Pánico</div>
+            <div class="ach-card" id="ach-buyer">💸 Capitalista<br>Compraste soporte</div>
+            <div class="ach-card" id="ach-turbo">🏃 Al Límite<br>Activaste el Turbo</div>
+        </div>
+
+        <hr>
+
+        <div class="comments-section">
+            <h3 style="color:#38bdf8; margin-top:0;">Comentarios</h3>
+            <div class="comment-form">
+                <input type="text" id="commentUser" placeholder="Tu Nombre o Nickname">
+                <textarea id="commentText" rows="2" placeholder="Escribe un comentario..."></textarea>
+                <button onclick="addComment()">Publicar Comentario</button>
+            </div>
+            <div class="comment-list" id="commentList"></div>
+        </div>
+
+        <a href="Proyecto1.html" class="btn-nav">Volver al Proyecto 1</a>
+    </div>
+
+    <script>
+        // --- VARIABLES DE MOTOR DE JUEGO GENERAL ---
+        let inventory = { shield: 0, gravity: false, doubleJump: false };
+        let activeChallenge = false;
+        let jumpsCount = 0; // Para el doble salto
+
+        // Modificadores de Estado In-Game (PowerUps recolectados en mapa)
+        let powerupTimers = { turbo: 0, magnet: 0 };
+
+        // --- AUDIO SISTEMA ---
+        let audioMuted = false;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type, duration) {
+            if (audioMuted) return;
+            let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+        function toggleMute() { audioMuted = !audioMuted; document.getElementById('muteBtn').textContent = audioMuted ? "🔇 Silenciado" : "🔊 Sonido ON"; }
+
+        // --- RASTRO DEL CURSOR ---
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.15) return;
+            const p = document.createElement('div'); p.className = 'cursor-particle';
+            p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
+            p.style.background = skinColors[equippedSkin] || '#38bdf8';
+            document.body.appendChild(p);
+            setTimeout(() => { p.style.transform = 'translate(-50%, -50%) scale(0)'; p.style.opacity = '0'; setTimeout(() => p.remove(), 400); }, 50);
+        });
+
+        // --- TIENDA Y ECONOMÍA ---
+        let coins = parseInt(localStorage.getItem('droid_coins')) || 0;
+        let ownedSkins = JSON.parse(localStorage.getItem('droid_skins')) || ['cyan'];
+        let equippedSkin = localStorage.getItem('droid_equipped_skin') || 'cyan';
+        const skinColors = { cyan: '#38bdf8', gold: '#f59e0b' };
+
+        function updateCoins(val) { coins += val; localStorage.setItem('droid_coins', coins); document.getElementById('coinCount').textContent = coins; }
+        
+        function updateShopUI() {
+            document.getElementById('coinCount').textContent = coins;
+            ['cyan', 'gold'].forEach(sk => {
+                let btn = document.getElementById(`skin-${sk}`);
+                if (btn) {
+                    if (equippedSkin === sk) { btn.textContent = "Equipado"; btn.className = "shop-btn equipped"; }
+                    else if (ownedSkins.includes(sk)) { btn.textContent = "Equipar"; btn.className = "shop-btn"; }
+                }
+            });
+            document.getElementById('hud-shield').textContent = `🛡️ Escudo: x${inventory.shield}`;
+            document.getElementById('hud-gravity').textContent = `🌙 Gravedad: ${inventory.gravity ? 'ON' : 'OFF'}`;
+            document.getElementById('hud-gravity').className = inventory.gravity ? "inv-badge active-item" : "inv-badge";
+            
+            // HUD interactivo en tiempo real de Buffs
+            const tBadge = document.getElementById('hud-turbo');
+            tBadge.textContent = `⚡ Turbo: ${powerupTimers.turbo > 0 ? Math.ceil(powerupTimers.turbo/60)+'s' : 'OFF'}`;
+            tBadge.className = powerupTimers.turbo > 0 ? "inv-badge powerup-active" : "inv-badge";
+
+            const djBadge = document.getElementById('hud-doublejump');
+            djBadge.textContent = `👟 Doble Salto: ${inventory.doubleJump ? 'ACTIVO' : 'OFF'}`;
+            djBadge.className = inventory.doubleJump ? "inv-badge powerup-active" : "inv-badge";
+        }
+
+        function buySkin(sk, price) {
+            if (ownedSkins.includes(sk)) { equipSkin(sk); return; }
+            if (coins >= price) { updateCoins(-price); ownedSkins.push(sk); localStorage.setItem('droid_skins', JSON.stringify(ownedSkins)); equipSkin(sk); playTone(523.25, 'sine', 0.3); }
+            else { playTone(150, 'sawtooth', 0.2); alert("¡Monedas insuficientes!"); }
+        }
+        function equipSkin(sk) { if (ownedSkins.includes(sk)) { equippedSkin = sk; localStorage.setItem('droid_equipped_skin', sk); updateShopUI(); } }
+
+        function buyPowerUp(item, price) {
+            if (coins >= price) {
+                updateCoins(-price);
+                if (item === 'shield') inventory.shield++;
+                if (item === 'gravity') inventory.gravity = true;
+                unlockAchievement('ach-buyer');
+                updateShopUI();
+                playTone(440, 'sine', 0.2);
+            } else {
+                playTone(150, 'sawtooth', 0.2); alert("Fondos insuficientes.");
+            }
+        }
+
+        // --- LEADERBOARD & APUESTAS ---
+        function renderLeaderboard() {
+            let myMax = parseInt(localStorage.getItem('droid_highscore')) || 0;
+            let players = [{name: "Garrett 🥇", score: 450}, {name: "Tú", score: myMax}, {name: "Javier <span class='glitch-name'>🦆</span>", score: 30}];
+            players.sort((a,b) => b.score - a.score);
+            let html = "";
+            players.forEach((p, idx) => {
+                let isMe = p.name === "Tú"; let isJavier = p.name.includes("Javier");
+                html += `<div class="leaderboard-row ${isMe ? 'highlight' : ''} ${isJavier ? 'clickable' : ''}" onclick="${isJavier ? 'challengeJavier()' : ''}"><span>${idx+1}. ${p.name}</span><span>${p.score} pts</span></div>`;
+            });
+            document.getElementById('leaderboardBoard').innerHTML = html;
+        }
+        function challengeJavier() {
+            if (activeChallenge) return; activeChallenge = true; playTone(200, 'square', 0.3);
+            alert("🎯 RETO DE JAVIER: ¡Supera sus tristes 30 puntos en la siguiente ronda para ganar 15 DroidCoins extra! Si mueres antes, pierdes 5 monedas.");
+        }
+
+        // --- SISTEMAS DE LOGROS ---
+        let stepsHovered = new Set();
+        function unlockAchievement(id) {
+            let card = document.getElementById(id);
+            if (card && !card.classList.contains('unlocked')) {
+                card.classList.add('unlocked'); playTone(587.33, 'triangle', 0.15); setTimeout(() => playTone(880, 'triangle', 0.2), 100);
+            }
+        }
+        function trackSteps(num) { stepsHovered.add(num); if (stepsHovered.size === 5) unlockAchievement('ach-reader'); }
+        function revealJoke() { document.querySelector('.joke-answer').classList.toggle('show'); unlockAchievement('ach-curious'); }
+
+        // --- BROMAS ---
+        function breakMyScreen() { document.getElementById('brokenScreen').style.display = 'block'; playTone(90, 'sawtooth', 0.6); unlockAchievement('ach-broken'); }
+        function repairScreen() { document.getElementById('brokenScreen').style.display = 'none'; playTone(600, 'sine', 0.1); }
+        function triggerPanic() { document.getElementById('panicScreen').style.display = 'block'; unlockAchievement('ach-panic'); }
+        function closePanic() { document.getElementById('panicScreen').style.display = 'none'; }
+
+        // ==========================================
+        //         MOTOR DEL MINI JUEGO ARCADE V3
+        // ==========================================
+        const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
+        
+        let dino = { x: 50, y: 120, width: 26, height: 26, vy: 0, gravity: 0.55 };
+        let obstacles = []; // Cactus, Pájaros, Meteoritos
+        let dynamicItems = []; // Monedas y Power-ups flotantes
+        let projectiles = []; // Disparos del Alien Boss
+        let gameOver = false; let gameScore = 0; let baseSpeed = 4.2;
+
+        // Propiedades del BOSS (Alien)
+        let boss = { active: false, x: 650, y: 40, width: 70, height: 40, hp: 100, maxHp: 100, direction: 1, shootCooldown: 0 };
+
+        function resetGameEntities() {
+            dino.y = 120; dino.vy = 0; obstacles = []; dynamicItems = []; projectiles = [];
+            gameScore = 0; gameOver = false; jumpsCount = 0;
+            inventory.doubleJump = false; powerupTimers.turbo = 0; powerupTimers.magnet = 0;
+            boss.active = false; boss.x = 650; boss.hp = 100;
+            updateShopUI();
+        }
+
+        function updateGame() {
+            if (gameOver || matrixActive) { requestAnimationFrame(updateGame); return; }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. GESTIÓN DE TIMERS Y DEBUFFS
+            if (powerupTimers.turbo > 0) powerupTimers.turbo--;
+            if (powerupTimers.magnet > 0) powerupTimers.magnet--;
+
+            // Fondo visual según avance o Boss Fight
+            let currentSpeed = baseSpeed;
+            if (boss.active) {
+                document.body.style.background = "linear-gradient(135deg, #1e1b4b, #311042)"; // Púrpura alienígena espacial
+                currentSpeed = 0; // El escenario se detiene para pelear con el jefe
+            } else if (gameScore >= 200 && !godModeActive) {
+                currentSpeed = baseSpeed * 1.5;
+                document.body.style.background = "linear-gradient(135deg, #450a0a, #0f172a)"; // Rojo alerta meteorito
+            } else {
+                document.body.style.background = "linear-gradient(135deg, #0f172a, #1e293b)";
+            }
+
+            if (powerupTimers.turbo > 0) currentSpeed *= 1.8; // Velocidad warp con Turbo
+
+            // 2. FÍSICAS Y MOVIMIENTO DEL JUGADOR
+            let currentGravity = inventory.gravity ? 0.28 : dino.gravity;
+            dino.vy += currentGravity; dino.y += dino.vy;
+            let floorY = 150 - dino.height;
+            if (dino.y > floorY) { dino.y = floorY; dino.vy = 0; jumpsCount = 0; }
+
+            // 3. ACTIVACIÓN E INTRODUCCIÓN DEL BOSS ALIEN
+            if (gameScore >= 400 && !boss.active && boss.hp > 0) {
+                boss.active = true;
+                playTone(220, 'sawtooth', 0.5);
+            }
+
+            // 4. GENERACIÓN DE ENEMIGOS Y ITEMS DE MAPA (Solo si no hay jefe)
+            if (!boss.active) {
+                // Cactus comunes
+                if (Math.random() < 0.012) {
+                    obstacles.push({ type: 'cactus', x: canvas.width, y: 125, width: 16, height: 25 });
+                }
+                // Pájaros cibernéticos (Puntaje > 100)
+                if (gameScore >= 100 && Math.random() < 0.007) {
+                    let birdHeights = [65, 100]; // Altura de salto u obligar a agacharse
+                    let targetY = birdHeights[Math.floor(Math.random() * birdHeights.length)];
+                    obstacles.push({ type: 'bird', x: canvas.width, y: targetY, width: 22, height: 14, wing: 0 });
+                }
+                // Meteoritos locos estilo glitch (Puntaje > 200)
+                if (gameScore >= 200 && Math.random() < 0.009) {
+                    obstacles.push({ type: 'meteor', x: Math.random() * 200 + 400, y: -20, width: 14, height: 14, vy: 3.5, vx: -4 });
+                }
+                // Monedas naturales y Power-Ups flotantes en el mapa
+                if (Math.random() < 0.02) {
+                    dynamicItems.push({ type: 'coin', x: canvas.width, y: Math.random() * 60 + 60, radius: 4 });
+                }
+                if (Math.random() < 0.0025) { // Aparición rara de buffs terrestres/aéreos
+                    let pool = ['turbo', 'doublejump', 'magnet'];
+                    dynamicItems.push({ type: pool[Math.floor(Math.random() * pool.length)], x: canvas.width, y: 110, width: 14, height: 14 });
+                }
+            } else {
+                // LÓGICA DEL COMPORTAMIENTO DEL JEFE ALIEN
+                // Entrada a la pantalla
+                if (boss.x > 480) boss.x -= 2;
+                
+                // Patrón de movimiento vertical flotante
+                boss.y += 0.8 * boss.direction;
+                if (boss.y > 75 || boss.y < 15) boss.direction *= -1;
+
+                // Lanzamiento de proyectiles de Lag
+                boss.shootCooldown++;
+                if (boss.shootCooldown >= 70) {
+                    boss.shootCooldown = 0;
+                    projectiles.push({ x: boss.x, y: boss.y + 20, radius: 6, vx: -4 });
+                    playTone(300, 'triangle', 0.1);
+                }
+
+                // Generar DroidCoins de plasma dañinas para el alien si las agarras
+                if (Math.random() < 0.035) {
+                    dynamicItems.push({ type: 'plasmacoin', x: canvas.width, y: Math.random() * 70 + 50, radius: 5 });
+                }
+            }
+
+            // 5. ACTUALIZACIÓN DE ENEMIGOS Y PROYECTILES
+            obstacles.forEach(obs => {
+                if (obs.type === 'meteor') {
+                    obs.x += obs.vx; obs.y += obs.vy;
+                } else {
+                    obs.x -= currentSpeed;
+                }
+                // Animación simple de alas para el pájaro
+                if (obs.type === 'bird') { obs.wing += 0.15; }
+
+                // Sistema de Puntaje al esquivarlos
+                if (obs.x + obs.width <= dino.x && !obs.counted) {
+                    obs.counted = true; gameScore += 10; updateCoins(godModeActive ? 5 : 1);
+                    playTone(880, 'sine', 0.02);
+                }
+            });
+            // Filtrar elementos fuera del lienzo
+            obstacles = obstacles.filter(obs => obs.x + 30 > 0 && obs.y < 160);
+
+            projectiles.forEach(p => {
+                p.x += p.vx;
+                // Si el jugador salta limpiamente sobre el proyectil del Boss, daña indirectamente al Alien
+                if (p.x <= dino.x && !p.counted) {
+                    p.counted = true; boss.hp -= 8; playTone(440, 'triangle', 0.1);
+                }
+            });
+            projectiles = projectiles.filter(p => p.x + 10 > 0);
+
+            // Actualización de Items (Atracción por imán activa)
+            dynamicItems.forEach(item => {
+                if (powerupTimers.magnet > 0 || item.type === 'plasmacoin') {
+                    // Vector de atracción hacia el T-Rex
+                    let dx = dino.x - item.x; let dy = dino.y - item.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 160) { item.x += (dx/dist) * 5; item.y += (dy/dist) * 5; }
+                    else { item.x -= currentSpeed; }
+                } else {
+                    item.x -= currentSpeed;
+                }
+            });
+            dynamicItems = dynamicItems.filter(item => (item.x + 20 > 0));
+
+            // 6. DETECCIÓN DE COLISIONES E INTERACCIONES (ITEMS)
+            dynamicItems.forEach((item, index) => {
+                let ix = item.x, iy = item.y, iw = item.width || item.radius*2, ih = item.height || item.radius*2;
+                if (dino.x < ix + iw && dino.x + dino.width > ix && dino.y < iy + ih && dino.y + dino.height > iy) {
+                    // Recolección exitosa
+                    dynamicItems.splice(index, 1);
+                    if (item.type === 'coin') {
+                        updateCoins(2); playTone(987.77, 'sine', 0.05);
+                    } else if (item.type === 'plasmacoin') {
+                        boss.hp -= 15; updateCoins(5); playTone(1200, 'sine', 0.05);
+                    } else if (item.type === 'turbo') {
+                        powerupTimers.turbo = 180; unlockAchievement('ach-turbo'); playTone(700, 'square', 0.3);
+                    } else if (item.type === 'doublejump') {
+                        inventory.doubleJump = true; playTone(600, 'sine', 0.2);
+                    } else if (item.type === 'magnet') {
+                        powerupTimers.magnet = 300; playTone(500, 'triangle', 0.2);
+                    }
+                    updateShopUI();
+                }
+            });
+
+            // Condición de Victoria sobre el Boss Alien
+            if (boss.active && boss.hp <= 0) {
+                boss.active = false; boss.hp = 0; gameScore += 150; updateCoins(100);
+                unlockAchievement('ach-alien');
+                playTone(1000, 'sine', 0.5);
+                alert("👽 ¡ALMIGHTY DEFEATED! Expulsaste al Alien del Lag de tu driver de video. Recompensa: ¡+100 DroidCoins! 🪙");
+            }
+
+            // 7. RENDERIZACIÓN DE GRÁFICOS CANVAS
+            // Dibujar T-Rex
+            ctx.fillStyle = powerupTimers.turbo > 0 ? '#ef4444' : skinColors[equippedSkin];
+            ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+            
+            // Ojo del T-Rex
+            ctx.fillStyle = '#0f172a'; ctx.fillRect(dino.x + (dino.width * 0.68), dino.y + 4, 3, 3);
+
+            // Escudo Protector Comprado Activo
+            if (inventory.shield > 0) {
+                ctx.strokeStyle = '#c084fc'; ctx.lineWidth = 2;
+                ctx.strokeRect(dino.x - 4, dino.y - 4, dino.width + 8, dino.height + 8);
+            }
+
+            // Dibujar Obstáculos (Cactus, Pájaros, Meteoritos)
+            obstacles.forEach(obs => {
+                if (obs.type === 'cactus') {
+                    ctx.fillStyle = '#f87171'; ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                } else if (obs.type === 'bird') {
+                    ctx.fillStyle = '#38bdf8'; ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                    // Ala oscilante artísitica
+                    ctx.fillStyle = '#0ea5e9';
+                    let wingOffset = Math.sin(obs.wing) > 0 ? -5 : 5;
+                    ctx.fillRect(obs.x + 6, obs.y + wingOffset, 8, 5);
+                } else if (obs.type === 'meteor') {
+                    ctx.fillStyle = '#f97316'; ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                    ctx.fillStyle = '#ef4444'; ctx.fillRect(obs.x + 3, obs.y - 4, obs.width - 6, 4); // Estela
+                }
+            });
+
+            // Dibujar Balas del Alien
+            ctx.fillStyle = '#a855f7';
+            projectiles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill(); });
+
+            // Dibujar Items y Monedas
+            dynamicItems.forEach(item => {
+                if (item.type === 'coin') {
+                    ctx.fillStyle = '#eab308'; ctx.beginPath(); ctx.arc(item.x, item.y, item.radius, 0, Math.PI*2); ctx.fill();
+                } else if (item.type === 'plasmacoin') {
+                    ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(item.x, item.y, item.radius, 0, Math.PI*2); ctx.fill();
+                } else {
+                    // Buffs contenedores icónicos
+                    ctx.fillStyle = item.type === 'turbo' ? '#ef4444' : (item.type === 'doublejump' ? '#22c55e' : '#3b82f6');
+                    ctx.fillRect(item.x, item.y, item.width, item.height);
+                }
+            });
+
+            // Dibujar la interfaz gráfica del BOSS ALIEN si está activo
+            if (boss.active) {
+                // Cuerpo de la Nave Nodriza
+                ctx.fillStyle = '#6366f1'; ctx.fillRect(boss.x, boss.y, boss.width, boss.height);
+                ctx.fillStyle = '#4f46e5'; ctx.fillRect(boss.x + 10, boss.y + 10, boss.width - 20, boss.height - 20);
+                // Escotilla brillante del alien
+                ctx.fillStyle = '#22c55e'; ctx.fillRect(boss.x + 25, boss.y + 12, 20, 8);
+
+                // Barra de Vida HUD del Jefe superior
+                ctx.fillStyle = '#1e1b4b'; ctx.fillRect(boss.x - 15, boss.y - 15, boss.width + 30, 6);
+                let hpPercent = boss.hp / boss.maxHp;
+                ctx.fillStyle = '#ef4444'; ctx.fillRect(boss.x - 15, boss.y - 15, (boss.width + 30) * hpPercent, 6);
+            }
+
+            // HUD del puntaje clásico
+            ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 12px monospace';
+            ctx.fillText(`SCORE: ${gameScore}`, 15, 22);
+            if (godModeActive) ctx.fillText(`[GM EN FORZA]`, 15, 38);
+
+            // 8. LOGIC DE DAÑO E IMPACTOS EN JUGADOR
+            if (!godModeActive && powerupTimers.turbo <= 0) {
+                // Combinar colisión de obstáculos estándar y proyectiles alienígenas
+                let hitDetected = false;
+
+                obstacles.forEach((obs, index) => {
+                    if (dino.x < obs.x + obs.width && dino.x + dino.width > obs.x && dino.y < obs.y + obs.height && dino.y + dino.height > obs.y) {
+                        obstacles.splice(index, 1); hitDetected = true;
+                    }
+                });
+
+                projectiles.forEach((p, index) => {
+                    let pWidth = p.radius * 2;
+                    if (dino.x < p.x + pWidth && dino.x + dino.width > p.x && dino.y < p.y + pWidth && dino.y + dino.height > p.y) {
+                        projectiles.splice(index, 1); hitDetected = true;
+                    }
+                });
+
+                if (hitDetected) {
+                    if (inventory.shield > 0) {
+                        inventory.shield--; updateShopUI(); playTone(600, 'sine', 0.15);
+                    } else {
+                        // GAME OVER FINAL TRISTE
+                        gameOver = true; playTone(150, 'sawtooth', 0.4);
+                        
+                        // Evaluar apuesta de Javier
+                        if (activeChallenge) {
+                            if (gameScore > 30) { updateCoins(15); alert("🎉 ¡Humillaste a Javier! Ganaste la apuesta de +15 🪙."); }
+                            else { updateCoins(-5); alert("🦆 Perdiste la apuesta... Javier se burló de ti y te restamos 5 DroidCoins."); }
+                            activeChallenge = false;
+                        }
+
+                        // Reset de buffs temporales al morir
+                        inventory.gravity = false; inventory.doubleJump = false;
+                        let topScore = localStorage.getItem('droid_highscore') || 0;
+                        if (gameScore > topScore) { localStorage.setItem('droid_highscore', gameScore); renderLeaderboard(); }
+                        ctx.fillStyle = 'rgba(239, 68, 68, 0.25)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+                    }
+                }
+            }
+
+            if (gameScore >= 50) unlockAchievement('ach-score50');
+            requestAnimationFrame(updateGame);
+        }
+
+        // CONTROL DE SALTOS DEL CANVAS (SOPORTE DOBLE SALTO)
+        canvas.addEventListener('click', () => {
+            if (matrixActive) return;
+            let floorY = 150 - dino.height;
+
+            if (!gameOver) {
+                if (dino.y === floorY) {
+                    // Primer salto normal
+                    jumpsCount = 1;
+                    dino.vy = godModeActive ? -14 : (inventory.gravity ? -8.0 : -10.8);
+                    playTone(330, 'square', 0.07);
+                } else if (inventory.doubleJump && jumpsCount === 1) {
+                    // Segundo salto en el aire concedido por power-up
+                    jumpsCount = 2;
+                    dino.vy = inventory.gravity ? -7.0 : -9.5;
+                    playTone(493.88, 'square', 0.07);
+                }
+            } else {
+                resetGameEntities();
+            }
+        });
+
+        // --- MODO DIOS OMNIPOTENTE ---
+        let godModeActive = false;
+        function activateGodMode() {
+            godModeActive = !godModeActive; const title = document.getElementById('arcadeTitle');
+            if (godModeActive) { title.textContent = "🔥 MODO DIOS INICIADO"; dino.height = 45; dino.width = 45; updateCoins(100); }
+            else { title.textContent = "🎮 ARCADE CENTER"; dino.height = 26; dino.width = 26; }
+        }
+
+        // --- MODO RED INTERRUPTOR ---
+        function setConnection(type) {
+            document.getElementById('btnWifi').classList.toggle('active', type === 'wifi');
+            document.getElementById('btnUsb').classList.toggle('active', type === 'usb');
+            const status = document.getElementById('connStatus');
+            if (type === 'wifi') { status.innerHTML = "📶 Latencia Variable (Depende del router)"; status.style.color = "#38bdf8"; }
+            else { status.innerHTML = "⚡ Conexión USB Activa: 0% Latencia"; status.style.color = "#4ade80"; }
+        }
+
+        // --- MATRIX TROLL ---
+        let countdownInterval; let matrixActive = false;
+        function triggerHackBroma() {
+            const overlay = document.getElementById('matrixOverlay'); overlay.style.display = 'block'; matrixActive = true;
+            initMatrix(); let timeLeft = 10;
+            countdownInterval = setInterval(() => {
+                timeLeft--; document.getElementById('timerBox').textContent = timeLeft;
+                if (timeLeft <= 0) { clearInterval(countdownInterval); alert("⚠️ ¡CONEXIÓN COMPLETA!"); closeHack(); }
+            }, 1000);
+        }
+        function dodgeButton() {
+            const btn = document.getElementById('abortBtn');
+            btn.style.left = Math.floor(Math.random() * (window.innerWidth - 150)) + 'px';
+            btn.style.top = Math.floor(Math.random() * (window.innerHeight - 80)) + 'px';
+        }
+        function closeHack() { clearInterval(countdownInterval); matrixActive = false; document.getElementById('matrixOverlay').style.display = 'none'; }
+        function initMatrix() {
+            const canvas = document.getElementById('matrixCanvas'); const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            const alphabet = "0101XYZ⚡"; const fontSize = 16; const columns = canvas.width / fontSize;
+            const rainDrops = Array(Math.floor(columns)).fill(1);
+            function draw() {
+                if (!matrixActive) return; ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#0F0'; ctx.font = fontSize + 'px monospace';
+                for (let i = 0; i < rainDrops.length; i++) {
+                    ctx.fillText(alphabet.charAt(Math.floor(Math.random() * alphabet.length)), i * fontSize, rainDrops[i] * fontSize);
+                    if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) rainDrops[i] = 0; rainDrops[i]++;
+                }
+                requestAnimationFrame(draw);
+            }
+            requestAnimationFrame(draw);
+        }
+
+        // Gatillo Teclado (Pánico instantáneo)
+        window.addEventListener('keydown', (e) => { if (e.key === 'p' || e.key === 'P') triggerPanic(); });
+
+        // --- COMENTARIOS LOCALSTORAGE ---
+        const defaultComments = [{user: "Garrett", text: "¡Te quedó genial la interfaz de instalación! Muy clara explicada."}];
+        function loadComments() {
+            let stored = localStorage.getItem('droidcam_comments');
+            let comments = stored ? JSON.parse(stored) : defaultComments; let listHtml = "";
+            comments.forEach(c => { listHtml += `<div class="comment"><div class="comment-author">👤 ${c.user}</div><div class="comment-text">${c.text}</div></div>`; });
+            document.getElementById('commentList').innerHTML = listHtml;
+        }
+        function addComment() {
+            const userInp = document.getElementById('commentUser'); const textInp = document.getElementById('commentText');
+            if (!userInp.value.trim() || !textInp.value.trim()) return;
+            let comments = JSON.parse(localStorage.getItem('droidcam_comments')) || defaultComments;
+            comments.unshift({ user: userInp.value, text: textInp.value }); localStorage.setItem('droidcam_comments', JSON.stringify(comments));
+            textInp.value = ""; loadComments(); playTone(660, 'sine', 0.05);
+        }
+
+        // --- INICIALIZACIÓN DE LA WEB ---
+        updateShopUI(); renderLeaderboard(); loadComments(); updateGame();
+    </script>
+</body>
+</html>
