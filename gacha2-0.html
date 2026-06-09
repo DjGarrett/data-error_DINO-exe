@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gacha Minimalista</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+
+        /* Auras épicas */
+        @keyframes aura {
+            0% { box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; border-color: #ff00ff; }
+            50% { box-shadow: 0 0 30px #00ffff, 0 0 50px #00ffff; border-color: #00ffff; }
+            100% { box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; border-color: #ff00ff; }
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+        
+        #stats { font-size: 1.2rem; margin-bottom: 20px; font-weight: bold; text-align: center; }
+        #pity-counter { color: #555; font-size: 0.9rem; margin-top: 5px; }
+        
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; }
+        #result-area { margin: 20px 0; min-height: 380px; display: flex; justify-content: center; align-items: center; }
+        
+        .card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 3px solid transparent; text-align: center; }
+        .card img { display: block; border-radius: 10px; width: 220px; height: 320px; object-fit: cover; }
+        
+        /* Rarezas */
+        .UR { animation: aura 1.5s infinite alternate; border: 3px solid #ff00ff; }
+        .SSR { border: 3px solid #ffcc00; }
+        .SR { border: 3px solid #b366ff; }
+        .R { border: 3px solid #66ccff; }
+
+        .collection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 20px; width: 100%; max-width: 600px; }
+        .col-item { width: 80px; height: 80px; background: #ddd; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #777; overflow: hidden; }
+        .col-item img { width: 100%; height: 100%; object-fit: cover; }
+        .col-item.UR { animation: aura 2s infinite; border: 2px solid #ff00ff; }
+
+        button { padding: 12px 24px; cursor: pointer; border: none; border-radius: 8px; background: #333; color: white; transition: 0.3s; }
+        button:hover { background: #555; }
+    </style>
+</head>
+<body>
+
+    <h1>SUMMON</h1>
+    <div id="stats">
+        Monedas: <span id="monedas-count">100</span>
+        <div id="pity-counter">SSR garantizado en: <span id="pity-val">10</span></div>
+    </div>
+    
+    <div class="controls">
+        <button id="summon-btn" onclick="invocar()">¡Invocar! (10)</button>
+        <button onclick="ganarMonedas()">Trabajar (+20)</button>
+    </div>
+    
+    <div id="result-area"></div>
+
+    <div style="width: 300px; margin: 20px 0;">
+        <canvas id="probChart"></canvas>
+    </div>
+
+    <h3>Colección</h3>
+    <div id="collection-list" class="collection-grid"></div>
+
+    <script>
+        let monedas = 100;
+        let pity = 0;
+        let obtenidos = [];
+        const MAX_PITY = 10;
+        
+        const pool = [
+            { nombre: "Rias", img: "imagenes/Rias.png", rareza: "SSR" },
+            { nombre: "Noshiro", img: "imagenes/Noshiro.jpg", rareza: "SR" },
+            { nombre: "2b", img: "imagenes/2b.png", rareza: "SSR" },
+            { nombre: "Saber", img: "imagenes/saber.png", rareza: "SSR" },
+            { nombre: "Prinz Eugen", img: "imagenes/Prinz eugen.png", rareza: "SR" },
+            { nombre: "Asuma Toki", img: "imagenes/Asuma_toki2.jpg", rareza: "R" },
+            { nombre: "CC", img: "imagenes/cc.png", rareza: "R" },
+            { nombre: "Perlica", img: "imagenes/Perlica.jpg", rareza: "SR" },
+            { nombre: "Burmilla", img: "imagenes/Burmilla.jpg", rareza: "R" },
+            { nombre: "Akeno", img: "imagenes/Akeno.jpg", rareza: "SSR" },
+            { nombre: "Nekojira", img: "imagenes/Nekojira2.jpg", rareza: "SSR" },
+            { nombre: "Vanity", img: "imagenes/Vanity.jpg", rareza: "SR" },
+            { nombre: "Prinz Eugen UR", img: "imagenes/prinz _eugen_UR.png", rareza: "UR" },
+            { nombre: "Akeno UR", img: "imagenes/Akeno_UR.jpg", rareza: "UR" },
+            { nombre: "Rias UR", img: "imagenes/Rias_Gremory_UR.jpg", rareza: "UR" },
+            { nombre: "Kaga", img: "imagenes/Azur Lane _ Kaga.jpg", rareza: "SR" },
+            { nombre: "Rory Mercury", img: "imagenes/Rory_Mercury.jpg", rareza: "SSR" },
+            { nombre: "Koneko UR", img: "imagenes/Koneko_UR.jpg", rareza: "UR" },
+            { nombre: "Asuma Toki UR", img: "imagenes/Asuma_Toki_UR.jpg", rareza: "UR" },
+            { nombre: "Kuroka UR", img: "imagenes/Kuroka_UR.jpg", rareza: "UR" },
+        ];
+
+        // Configuración Gráfica
+        const ctx = document.getElementById('probChart').getContext('2d');
+        const miGrafica = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: ['UR', 'SSR', 'SR', 'R'], datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#ff00ff', '#ffcc00', '#b366ff', '#66ccff'] }] },
+            options: { plugins: { legend: { display: false } } }
+        });
+
+        function actualizarGrafica() {
+            const pesos = { "UR": 0.2, "SSR": 1, "SR": 3, "R": 6 };
+            let total = 0;
+            let conteo = { "UR": 0, "SSR": 0, "SR": 0, "R": 0 };
+            pool.forEach(p => { total += pesos[p.rareza]; conteo[p.rareza] += pesos[p.rareza]; });
+            miGrafica.data.datasets[0].data = ['UR', 'SSR', 'SR', 'R'].map(r => (conteo[r] / total * 100).toFixed(1));
+            miGrafica.update();
+        }
+
+        function renderColeccion() {
+            const container = document.getElementById('collection-list');
+            container.innerHTML = pool.map(p => {
+                const isUnlocked = obtenidos.find(o => o.nombre === p.nombre);
+                return `<div class="col-item ${isUnlocked ? p.rareza + ' unlocked' : ''}">${isUnlocked ? `<img src="${p.img}" title="${p.nombre}">` : '???'}</div>`;
+            }).join('');
+        }
+
+        function invocar() {
+            if (monedas >= 10) {
+                monedas -= 10;
+                pity++;
+                document.getElementById('monedas-count').innerText = monedas;
+                document.getElementById('pity-val').innerText = MAX_PITY - pity;
+
+                let elegido;
+                if (pity >= MAX_PITY) {
+                    const highTier = pool.filter(p => p.rareza === "SSR" || p.rareza === "UR");
+                    elegido = highTier[Math.floor(Math.random() * highTier.length)];
+                    pity = 0;
+                } else {
+                    let listaSorteo = [];
+                    pool.forEach(p => {
+                        let pesos = { "UR": 0.2, "SSR": 1, "SR": 3, "R": 6 };
+                        for (let i = 0; i < (pesos[p.rareza] * 10); i++) listaSorteo.push(p);
+                    });
+                    elegido = listaSorteo[Math.floor(Math.random() * listaSorteo.length)];
+                    if (elegido.rareza === "SSR" || elegido.rareza === "UR") pity = 0;
+                }
+
+                document.getElementById('result-area').innerHTML = `
+                    <div class="card ${elegido.rareza} fade-in">
+                        <img src="${elegido.img}">
+                        <p style="font-weight:bold;">${elegido.nombre} (${elegido.rareza})</p>
+                    </div>`;
+
+                if (!obtenidos.find(o => o.nombre === elegido.nombre)) {
+                    obtenidos.push(elegido);
+                    renderColeccion();
+                }
+            }
+        }
+
+        function ganarMonedas() { monedas += 20; document.getElementById('monedas-count').innerText = monedas; }
+
+        actualizarGrafica();
+        renderColeccion();
+    </script>
+</body>
+</html>
