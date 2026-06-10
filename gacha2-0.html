@@ -2,23 +2,26 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Gacha Minimalista</title>
+    <title>Gacha Minimalista - Con Guardado</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         .fade-in { animation: fadeIn 0.5s ease-out; }
 
-        /* Auras épicas */
         @keyframes aura {
             0% { box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; border-color: #ff00ff; }
             50% { box-shadow: 0 0 30px #00ffff, 0 0 50px #00ffff; border-color: #00ffff; }
             100% { box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; border-color: #ff00ff; }
         }
 
+        @keyframes astralAura {
+            0% { box-shadow: 0 0 20px #fff, 0 0 40px #fff, 0 0 80px #00d4ff; border-color: #fff; transform: scale(1); }
+            50% { box-shadow: 0 0 60px #fff, 0 0 120px #ff00ff, 0 0 180px #ff0000; border-color: #fff; transform: scale(1.1); }
+            100% { box-shadow: 0 0 20px #fff, 0 0 40px #fff, 0 0 80px #00d4ff; border-color: #fff; transform: scale(1); }
+        }
+
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; display: flex; flex-direction: column; align-items: center; padding: 40px; }
-        
         #stats { font-size: 1.2rem; margin-bottom: 20px; font-weight: bold; text-align: center; }
-        #pity-counter { color: #555; font-size: 0.9rem; margin-top: 5px; }
         
         .controls { display: flex; gap: 10px; margin-bottom: 20px; }
         #result-area { margin: 20px 0; min-height: 380px; display: flex; justify-content: center; align-items: center; }
@@ -26,19 +29,17 @@
         .card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 3px solid transparent; text-align: center; }
         .card img { display: block; border-radius: 10px; width: 220px; height: 320px; object-fit: cover; }
         
-        /* Rarezas */
         .UR { animation: aura 1.5s infinite alternate; border: 3px solid #ff00ff; }
         .SSR { border: 3px solid #ffcc00; }
         .SR { border: 3px solid #b366ff; }
         .R { border: 3px solid #66ccff; }
+        .αstral { animation: astralAura 1.5s infinite alternate; border: 4px solid #fff; background: #000; color: #fff; }
 
         .collection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 20px; width: 100%; max-width: 600px; }
         .col-item { width: 80px; height: 80px; background: #ddd; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #777; overflow: hidden; }
         .col-item img { width: 100%; height: 100%; object-fit: cover; }
-        .col-item.UR { animation: aura 2s infinite; border: 2px solid #ff00ff; }
-
-        button { padding: 12px 24px; cursor: pointer; border: none; border-radius: 8px; background: #333; color: white; transition: 0.3s; }
-        button:hover { background: #555; }
+        .col-item.αstral { border: 2px solid #fff; }
+        button { padding: 12px 24px; cursor: pointer; border: none; border-radius: 8px; background: #333; color: white; }
     </style>
 </head>
 <body>
@@ -46,19 +47,17 @@
     <h1>SUMMON</h1>
     <div id="stats">
         Monedas: <span id="monedas-count">100</span>
-        <div id="pity-counter">SSR garantizado en: <span id="pity-val">10</span></div>
+        <div id="pity-counter">SSR+ garantizado en: <span id="pity-val">10</span></div>
     </div>
     
     <div class="controls">
-        <button id="summon-btn" onclick="invocar()">¡Invocar! (10)</button>
+        <button onclick="invocar()">¡Invocar! (10)</button>
         <button onclick="ganarMonedas()">Trabajar (+20)</button>
+        <button onclick="reiniciarJuego()" style="background: #a00;">Reiniciar</button>
     </div>
     
     <div id="result-area"></div>
-
-    <div style="width: 300px; margin: 20px 0;">
-        <canvas id="probChart"></canvas>
-    </div>
+    <div style="width: 300px; margin: 20px 0;"><canvas id="probChart"></canvas></div>
 
     <h3>Colección</h3>
     <div id="collection-list" class="collection-grid"></div>
@@ -68,6 +67,7 @@
         let pity = 0;
         let obtenidos = [];
         const MAX_PITY = 10;
+        const PESOS = { "αstral": 0.05, "UR": 0.2, "SSR": 1, "SR": 3, "R": 6 };
         
         const pool = [
             { nombre: "Rias", img: "imagenes/Rias.png", rareza: "SSR" },
@@ -93,7 +93,7 @@
             { nombre: "Krul Tepes", img: "imagenes/Krul Tepes _Owari no Seraph.jpg", rareza: "SSR" },
             { nombre: "Emalia Steinbart’s", img: "imagenes/Emalia_Steinbart’s.jpg", rareza: "R" },
             { nombre: "Xenovia UR", img: "imagenes/Xenovia_UR.jpg", rareza: "UR" },
-            { nombre:"Atago", img: "imagenes/Atago.jpg", rareza: "SSR" },
+            { nombre: "Atago", img: "imagenes/Atago.jpg", rareza: "SSR" },
             { nombre: "Sorasaki Hina", img: "imagenes/Sorasaki_Hina.jpg", rareza: "SR" },
             { nombre: "Shinoa Hiiragi", img: "imagenes/Shinoa_Hiragi.jpg", rareza: "SR" },
             { nombre: "Plana", img: "imagenes/Plana.jpg", rareza: "R" },
@@ -106,31 +106,58 @@
             { nombre: "Sona Sitri", img: "imagenes/Sona_Sitri2.jpg", rareza: "SR"},
             { nombre: "Noriko Sonozaki", img: "imagenes/Noriko_Sonozaki.jpg", rareza: "SSR"},
             { nombre: "Ram", img: "imagenes/Ram.jpg", rareza: "SSR"},
-
+            { nombre: "Momo Hanakai", img: "imagenes/Momo_Hanakai.webp", rareza: "R"},
+            { nombre: "Serafall Leviathan", img: "imagenes/Serafall_Leviathan.jpg", rareza: "SR"},
+            { nombre: "Ravel Phoenix", img: "imagenes/Ravel_Phoenix.jpg", rareza: "R"},
+            { nombre: "Xenovia (α)", img: "imagenes/Xenovia_summer_version.jpg", rareza: "αstral"},
+            { nombre: "Atago (α)", img: "imagenes/Atago_summer_version.png", rareza: "αstral"},
+            { nombre: "Ram (α)", img: "imagenes/Ram_Null.jpg", rareza: "αstral"},
         ];
 
-        // Configuración Gráfica
+        // --- SISTEMA DE PERSISTENCIA ---
+        function guardar() {
+            const data = { monedas, pity, obtenidos_nombres: obtenidos.map(o => o.nombre) };
+            localStorage.setItem('gachaSave', JSON.stringify(data));
+        }
+
+        function cargar() {
+            const save = localStorage.getItem('gachaSave');
+            if (save) {
+                const data = JSON.parse(save);
+                monedas = data.monedas;
+                pity = data.pity;
+                obtenidos = pool.filter(p => data.obtenidos_nombres.includes(p.nombre));
+                actualizarPantalla();
+            }
+        }
+
+        function reiniciarJuego() {
+            if(confirm("¿Borrar todo el progreso?")) {
+                localStorage.removeItem('gachaSave');
+                location.reload();
+            }
+        }
+        // -------------------------------
+
         const ctx = document.getElementById('probChart').getContext('2d');
         const miGrafica = new Chart(ctx, {
             type: 'bar',
-            data: { labels: ['UR', 'SSR', 'SR', 'R'], datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#ff00ff', '#ffcc00', '#b366ff', '#66ccff'] }] },
+            data: { labels: ['αstral', 'UR', 'SSR', 'SR', 'R'], datasets: [{ data: [0,0,0,0,0], backgroundColor: ['#fff', '#ff00ff', '#ffcc00', '#b366ff', '#66ccff'] }] },
             options: { plugins: { legend: { display: false } } }
         });
 
-        function actualizarGrafica() {
-            const pesos = { "UR": 0.2, "SSR": 1, "SR": 3, "R": 6 };
-            let total = 0;
-            let conteo = { "UR": 0, "SSR": 0, "SR": 0, "R": 0 };
-            pool.forEach(p => { total += pesos[p.rareza]; conteo[p.rareza] += pesos[p.rareza]; });
-            miGrafica.data.datasets[0].data = ['UR', 'SSR', 'SR', 'R'].map(r => (conteo[r] / total * 100).toFixed(1));
-            miGrafica.update();
+        function actualizarPantalla() {
+            document.getElementById('monedas-count').innerText = monedas;
+            document.getElementById('pity-val').innerText = MAX_PITY - pity;
+            renderColeccion();
+            guardar();
         }
 
         function renderColeccion() {
             const container = document.getElementById('collection-list');
             container.innerHTML = pool.map(p => {
                 const isUnlocked = obtenidos.find(o => o.nombre === p.nombre);
-                return `<div class="col-item ${isUnlocked ? p.rareza + ' unlocked' : ''}">${isUnlocked ? `<img src="${p.img}" title="${p.nombre}">` : '???'}</div>`;
+                return `<div class="col-item ${isUnlocked ? p.rareza : ''}">${isUnlocked ? `<img src="${p.img}" title="${p.nombre}">` : '???'}</div>`;
             }).join('');
         }
 
@@ -138,43 +165,32 @@
             if (monedas >= 10) {
                 monedas -= 10;
                 pity++;
-                document.getElementById('monedas-count').innerText = monedas;
-                document.getElementById('pity-val').innerText = MAX_PITY - pity;
-
                 let elegido;
                 if (pity >= MAX_PITY) {
-                    const highTier = pool.filter(p => p.rareza === "SSR" || p.rareza === "UR");
+                    const highTier = pool.filter(p => p.rareza !== "R" && p.rareza !== "SR");
                     elegido = highTier[Math.floor(Math.random() * highTier.length)];
                     pity = 0;
                 } else {
                     let listaSorteo = [];
-                    pool.forEach(p => {
-                        let pesos = { "UR": 0.2, "SSR": 1, "SR": 3, "R": 6 };
-                        for (let i = 0; i < (pesos[p.rareza] * 10); i++) listaSorteo.push(p);
-                    });
+                    pool.forEach(p => { for (let i = 0; i < (PESOS[p.rareza] * 10); i++) listaSorteo.push(p); });
                     elegido = listaSorteo[Math.floor(Math.random() * listaSorteo.length)];
-                    if (elegido.rareza === "SSR" || elegido.rareza === "UR") pity = 0;
+                    if (["SSR", "UR", "αstral"].includes(elegido.rareza)) pity = 0;
                 }
-
-                document.getElementById('result-area').innerHTML = `
-                    <div class="card ${elegido.rareza} fade-in">
-                        <img src="${elegido.img}">
-                        <p style="font-weight:bold;">${elegido.nombre} (${elegido.rareza})</p>
-                    </div>`;
-
-                if (!obtenidos.find(o => o.nombre === elegido.nombre)) {
-                    obtenidos.push(elegido);
-                    renderColeccion();
-                }
+                document.getElementById('result-area').innerHTML = `<div class="card ${elegido.rareza} fade-in"><img src="${elegido.img}"><p style="font-weight:bold;">${elegido.nombre} (${elegido.rareza})</p></div>`;
+                if (!obtenidos.find(o => o.nombre === elegido.nombre)) obtenidos.push(elegido);
+                actualizarPantalla();
             }
         }
 
-        function ganarMonedas() { monedas += 20; document.getElementById('monedas-count').innerText = monedas; }
+        function ganarMonedas() { monedas += 20; actualizarPantalla(); }
 
-        actualizarGrafica();
-        renderColeccion();
+        // Inicialización
+        cargar();
+        actualizarPantalla();
+        // Gráfica de probabilidades (estática basada en pesos)
+        let total = Object.values(PESOS).reduce((a,b) => a+b, 0);
+        miGrafica.data.datasets[0].data = Object.keys(PESOS).map(r => (PESOS[r]/total*100).toFixed(1));
+        miGrafica.update();
     </script>
-    <br>
-    <a href="index.html">Volver al menú</a>
 </body>
 </html>
