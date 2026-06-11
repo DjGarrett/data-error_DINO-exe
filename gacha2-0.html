@@ -3,29 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>Gacha Minimalista - Colección</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         .fade-in { animation: fadeIn 0.5s ease-out; }
 
-        @keyframes aura {
-            0% { box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; border-color: #ff00ff; }
-            50% { box-shadow: 0 0 30px #00ffff, 0 0 50px #00ffff; border-color: #00ffff; }
-            100% { box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; border-color: #ff00ff; }
-        }
-
-        @keyframes astralAura {
-            0% { box-shadow: 0 0 15px #fff, inset 0 0 10px #00d4ff; border-color: #00d4ff; }
-            50% { box-shadow: 0 0 30px #ff00ff, inset 0 0 20px #ff00ff; border-color: #ff00ff; }
-            100% { box-shadow: 0 0 15px #fff, inset 0 0 10px #00d4ff; border-color: #00d4ff; }
-        }
+        @keyframes aura { 0% { box-shadow: 0 0 10px #ff00ff; border-color: #ff00ff; } 50% { box-shadow: 0 0 30px #00ffff; border-color: #00ffff; } }
+        @keyframes astralAura { 0% { box-shadow: 0 0 15px #fff; border-color: #00d4ff; } 50% { box-shadow: 0 0 30px #ff00ff; border-color: #ff00ff; } }
+        @keyframes spectralAura { 0% { box-shadow: 0 0 20px #800080; border-color: #800080; } 50% { box-shadow: 0 0 40px #33ff33; border-color: #33ff33; } }
+        @keyframes glacierAura { 0% { box-shadow: 0 0 20px #00aaff; border-color: #ffffff; } 50% { box-shadow: 0 0 40px #ffffff; border-color: #00aaff; } }
 
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; display: flex; flex-direction: column; align-items: center; padding: 40px; }
-        #stats { font-size: 1.2rem; margin-bottom: 20px; font-weight: bold; text-align: center; }
-        
         .controls { display: flex; gap: 10px; margin-bottom: 20px; }
-        #result-area { margin: 20px 0; min-height: 380px; display: flex; justify-content: center; align-items: center; }
-        
         .card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 3px solid transparent; text-align: center; }
         .card img { display: block; border-radius: 10px; width: 220px; height: 320px; object-fit: cover; }
         
@@ -33,7 +21,9 @@
         .SSR { border: 3px solid #ffcc00; }
         .SR { border: 3px solid #b366ff; }
         .R { border: 3px solid #66ccff; }
-        .αstral { animation: astralAura 3s infinite linear; border: 4px solid #fff; background: radial-gradient(circle, #222, #000); color: #fff; }
+        .αstral { animation: astralAura 3s infinite linear; border: 4px solid #fff; }
+        .εspectral { animation: spectralAura 1.5s infinite alternate; border: 4px solid #800080; }
+        .Glaciar { animation: glacierAura 2s infinite linear; border: 4px solid #00aaff; }
 
         .collection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 20px; width: 100%; max-width: 600px; }
         .col-item { width: 80px; height: 80px; background: #ddd; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #777; overflow: hidden; cursor: pointer; }
@@ -41,135 +31,121 @@
         
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index:1000; justify-content:center; align-items:center; }
         .modal-content { background: white; padding: 20px; border-radius: 20px; max-width: 260px; text-align: center; }
-        .close-btn { cursor: pointer; font-size: 20px; float: right; }
-        
         button { padding: 12px 24px; cursor: pointer; border: none; border-radius: 8px; background: #333; color: white; }
+        
+        /* Botón Secreto */
+        .secret-btn { position: fixed; bottom: 5px; right: 5px; width: 20px; height: 20px; cursor: pointer; opacity: 0; }
     </style>
 </head>
 <body>
 
     <h1>SUMMON</h1>
-    <div id="stats">
-        Monedas: <span id="monedas-count">100</span>
-        <div id="pity-counter">SSR+ garantizado en: <span id="pity-val">10</span></div>
-    </div>
+    <div id="stats">Monedas: <span id="monedas-count">100</span></div>
     
     <div class="controls">
-        <button onclick="invocar()">¡Invocar! (10)</button>
+        <button onclick="invocar(false)">Invocar Normal (10)</button>
+        <button id="btn-banner" onclick="invocar(true)" style="display:none; background: #a00;">Banner Especial (10)</button>
         <button onclick="ganarMonedas()">Trabajar (+20)</button>
-        <button onclick="reiniciarJuego()" style="background: #a00;">Reiniciar</button>
     </div>
     
     <div id="result-area"></div>
     <div id="collection-list" class="collection-grid"></div>
 
+    <div class="secret-btn" onclick="toggleSecretBanner()" title="???"></div>
+
     <div id="modal" class="modal" onclick="this.style.display='none'">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <span class="close-btn" onclick="document.getElementById('modal').style.display='none'">&times;</span>
             <div id="modal-body"></div>
         </div>
     </div>
 
     <script>
-        let monedas = 100, obtenidos = [];
+        let monedas = 100, obtenidos = [], forzarBanner = false;
+        
         const pool = [
-            { nombre: "Rias", img: "imagenes/Rias.png", rareza: "SSR" },
-            { nombre: "Noshiro", img: "imagenes/Noshiro3.jpg", rareza: "SSR" },
-            { nombre: "2b", img: "imagenes/2b.png", rareza: "SSR" },
-            { nombre: "Saber", img: "imagenes/saber.png", rareza: "SSR" },
-            { nombre: "Prinz Eugen", img: "imagenes/Prinz eugen.png", rareza: "SR" },
-            { nombre: "Asuma Toki", img: "imagenes/Asuma_toki2.jpg", rareza: "R" },
-            { nombre: "CC", img: "imagenes/cc.png", rareza: "R" },
-            { nombre: "Perlica", img: "imagenes/Perlica.jpg", rareza: "SR" },
-            { nombre: "Burmilla", img: "imagenes/Burmilla.jpg", rareza: "R" },
-            { nombre: "Akeno", img: "imagenes/Akeno.jpg", rareza: "SSR" },
-            { nombre: "Nekojira", img: "imagenes/Nekojira2.jpg", rareza: "SSR" },
-            { nombre: "Vanity", img: "imagenes/Vanity.jpg", rareza: "SR" },
-            { nombre: "Prinz Eugen UR", img: "imagenes/prinz _eugen_UR.png", rareza: "UR" },
-            { nombre: "Akeno UR", img: "imagenes/Akeno_UR.jpg", rareza: "UR" },
-            { nombre: "Rias UR", img: "imagenes/Rias_Gremory_UR.jpg", rareza: "UR" },
-            { nombre: "Kaga", img: "imagenes/Azur Lane _ Kaga.jpg", rareza: "SR" },
-            { nombre: "Rory Mercury", img: "imagenes/Rory_Mercury.jpg", rareza: "SSR" },
-            { nombre: "Koneko UR", img: "imagenes/Koneko_UR.jpg", rareza: "UR" },
-            { nombre: "Asuma Toki UR", img: "imagenes/Asuma_Toki_UR.jpg", rareza: "UR" },
-            { nombre: "Kuroka UR", img: "imagenes/Kuroka_UR2.jpg", rareza: "UR" },
-            { nombre: "Krul Tepes", img: "imagenes/Krul Tepes _Owari no Seraph.jpg", rareza: "SSR" },
-            { nombre: "Emalia Steinbart’s", img: "imagenes/Emalia_Steinbart’s.jpg", rareza: "R" },
-            { nombre: "Xenovia UR", img: "imagenes/Xenovia_UR.jpg", rareza: "UR" },
-            { nombre: "Atago", img: "imagenes/Atago.jpg", rareza: "SSR" },
-            { nombre: "Sorasaki Hina", img: "imagenes/Sorasaki_Hina.jpg", rareza: "SR" },
-            { nombre: "Shinoa Hiiragi", img: "imagenes/Shinoa_Hiragi.jpg", rareza: "SR" },
-            { nombre: "Plana", img: "imagenes/Plana.jpg", rareza: "R" },
-            { nombre: "Rem", img: "imagenes/Rem.jpg", rareza: "SSR" },
-            { nombre: "August Von Parseval", img: "imagenes/August_Von_Parseval_UR.jpg", rareza: "UR" },
-            { nombre: "Mai Sakurajima", img: "imagenes/Mai_Sakurajima.png", rareza: "SSR" },
-            { nombre: "Luno", img: "imagenes/Luno.jpg", rareza: "SR" },
-            { nombre: "Vladilena Milizé", img: "imagenes/Vladilena_Milizé.jpg", rareza: "SSR" },
-            { nombre: "Tsubaki Shinra", img: "imagenes/Tsubaki_Shinra.jpg", rareza: "SR" },
-            { nombre: "Sona Sitri", img: "imagenes/Sona_Sitri2.jpg", rareza: "SR" },
-            { nombre: "Noriko Sonozaki", img: "imagenes/Noriko_Sonozaki.jpg", rareza: "SSR" },
-            { nombre: "Ram", img: "imagenes/Ram.jpg", rareza: "SSR" },
-            { nombre: "Momo Hanakai", img: "imagenes/Momo_Hanakai.webp", rareza: "R" },
-            { nombre: "Serafall Leviathan", img: "imagenes/Serafall_Leviathan.jpg", rareza: "SR" },
-            { nombre: "Ravel Phoenix", img: "imagenes/Ravel_Phoenix.jpg", rareza: "R" },
-            { nombre: "Xenovia (α)", img: "imagenes/Xenovia_summer_version.jpg", rareza: "αstral" },
-            { nombre: "Atago (α)", img: "imagenes/Atago_summer.png", rareza: "αstral" },
-            { nombre: "Ram (α)", img: "imagenes/Ram_Null.jpg", rareza: "αstral" },
-            { nombre: "Grayfia Lucifuge (α)", img: "imagenes/Grayfi_Lucifuge_null.jpg", rareza: "αstral" },
-            { nombre: "Tenka Izumo", img: "imagenes/Tenka_Izumo.jpg", rareza: "SSR" },
-            { nombre: "Renn Yamashiro", img: "imagenes/Yamashiro_Renn.jpg", rareza: "SSR" },
-            { nombre: "Delta", img: "imagenes/Delta.jpg", rareza: "SR" },
-            { nombre: "Alpha", img: "imagenes/Alpha.jpg", rareza: "SSR" },
-            { nombre: "Epsilon", img: "imagenes/epsilon.jpg", rareza: "SR" },
-            { nombre: "Beta", img: "imagenes/Beta.jpg", rareza: "SSR" },
-            { nombre: "beta (α)", img: "imagenes/Beta_astral.jpg", rareza: "αstral" },
-            { nombre: "Yachiho Azuma", img: "imagenes/Yachiho_Azuma.jpg", rareza: "SR" },
-            { nombre: "Takina Inoue", img: "imagenes/Takina_Inoue.jpg", rareza: "SSR" },
-            { nombre: "Chisato Nishikigi", img: "imagenes/Chisato_Nishikigi.jpg", rareza: "SSR" },
-            { nombre: "Nico Robin", img: "imagenes/Nico_Robin.jpg", rareza: "SSR" },
-            { nombre: "Noshiro (α)", img: "imagenes/Noshiro_astral.jpg", rareza: "αstral" },
-            { nombre: "Zero Two", img: "imagenes/Zero_Two.jpg", rareza: "SSR" }
+            { nombre: "Rias", img: "imagenes/Rias.png", rareza: "SSR" }, { nombre: "Noshiro", img: "imagenes/Noshiro3.jpg", rareza: "SSR" },
+            { nombre: "2b", img: "imagenes/2b.png", rareza: "SSR" }, { nombre: "Saber", img: "imagenes/saber.png", rareza: "SSR" },
+            { nombre: "Prinz Eugen", img: "imagenes/Prinz eugen.png", rareza: "SR" }, { nombre: "Asuma Toki", img: "imagenes/Asuma_toki2.jpg", rareza: "R" },
+            { nombre: "CC", img: "imagenes/cc.png", rareza: "R" }, { nombre: "Perlica", img: "imagenes/Perlica.jpg", rareza: "SR" },
+            { nombre: "Burmilla", img: "imagenes/Burmilla.jpg", rareza: "R" }, { nombre: "Akeno", img: "imagenes/Akeno.jpg", rareza: "SSR" },
+            { nombre: "Nekojira", img: "imagenes/Nekojira2.jpg", rareza: "SSR" }, { nombre: "Vanity", img: "imagenes/Vanity.jpg", rareza: "SR" },
+            { nombre: "Prinz Eugen UR", img: "imagenes/prinz _eugen_UR.png", rareza: "UR" }, { nombre: "Akeno UR", img: "imagenes/Akeno_UR.jpg", rareza: "UR" },
+            { nombre: "Rias UR", img: "imagenes/Rias_Gremory_UR.jpg", rareza: "UR" }, { nombre: "Kaga", img: "imagenes/Azur Lane _ Kaga.jpg", rareza: "SR" },
+            { nombre: "Rory Mercury", img: "imagenes/Rory_Mercury.jpg", rareza: "SSR" }, { nombre: "Koneko UR", img: "imagenes/Koneko_UR.jpg", rareza: "UR" },
+            { nombre: "Asuma Toki UR", img: "imagenes/Asuma_Toki_UR.jpg", rareza: "UR" }, { nombre: "Kuroka UR", img: "imagenes/Kuroka_UR2.jpg", rareza: "UR" },
+            { nombre: "Krul Tepes", img: "imagenes/Krul Tepes _Owari no Seraph.jpg", rareza: "SSR" }, { nombre: "Emalia Steinbart’s", img: "imagenes/Emalia_Steinbart’s.jpg", rareza: "R" },
+            { nombre: "Xenovia UR", img: "imagenes/Xenovia_UR.jpg", rareza: "UR" }, { nombre: "Atago", img: "imagenes/Atago.jpg", rareza: "SSR" },
+            { nombre: "Sorasaki Hina", img: "imagenes/Sorasaki_Hina.jpg", rareza: "SR" }, { nombre: "Shinoa Hiiragi", img: "imagenes/Shinoa_Hiragi.jpg", rareza: "SR" },
+            { nombre: "Plana", img: "imagenes/Plana.jpg", rareza: "R" }, { nombre: "Rem", img: "imagenes/Rem.jpg", rareza: "SSR" },
+            { nombre: "August Von Parseval", img: "imagenes/August_Von_Parseval_UR.jpg", rareza: "UR" }, { nombre: "Mai Sakurajima", img: "imagenes/Mai_Sakurajima.png", rareza: "SSR" },
+            { nombre: "Luno", img: "imagenes/Luno.jpg", rareza: "SR" }, { nombre: "Vladilena Milizé", img: "imagenes/Vladilena_Milizé.jpg", rareza: "SSR" },
+            { nombre: "Tsubaki Shinra", img: "imagenes/Tsubaki_Shinra.jpg", rareza: "SR" }, { nombre: "Sona Sitri", img: "imagenes/Sona_Sitri2.jpg", rareza: "SR" },
+            { nombre: "Noriko Sonozaki", img: "imagenes/Noriko_Sonozaki.jpg", rareza: "SSR" }, { nombre: "Ram", img: "imagenes/Ram.jpg", rareza: "SSR" },
+            { nombre: "Momo Hanakai", img: "imagenes/Momo_Hanakai.webp", rareza: "R" }, { nombre: "Serafall Leviathan", img: "imagenes/Serafall_Leviathan.jpg", rareza: "SR" },
+            { nombre: "Ravel Phoenix", img: "imagenes/Ravel_Phoenix.jpg", rareza: "R" }, { nombre: "Xenovia (α)", img: "imagenes/Xenovia_summer_version.jpg", rareza: "αstral" },
+            { nombre: "Atago (α)", img: "imagenes/Atago_summer.png", rareza: "αstral" }, { nombre: "Ram (α)", img: "imagenes/Ram_Null.jpg", rareza: "αstral" },
+            { nombre: "Grayfia Lucifuge (α)", img: "imagenes/Grayfi_Lucifuge_null.jpg", rareza: "αstral" }, { nombre: "Tenka Izumo", img: "imagenes/Tenka_Izumo.jpg", rareza: "SSR" },
+            { nombre: "Renn Yamashiro", img: "imagenes/Yamashiro_Renn.jpg", rareza: "SSR" }, { nombre: "Delta", img: "imagenes/Delta.jpg", rareza: "SR" },
+            { nombre: "Alpha", img: "imagenes/Alpha.jpg", rareza: "SSR" }, { nombre: "Epsilon", img: "imagenes/epsilon.jpg", rareza: "SR" },
+            { nombre: "Beta", img: "imagenes/Beta.jpg", rareza: "SSR" }, { nombre: "beta (α)", img: "imagenes/Beta_astral.jpg", rareza: "αstral" },
+            { nombre: "Yachiho Azuma", img: "imagenes/Yachiho_Azuma.jpg", rareza: "SR" }, { nombre: "Takina Inoue", img: "imagenes/Takina_Inoue.jpg", rareza: "SSR" },
+            { nombre: "Chisato Nishikigi", img: "imagenes/Chisato_Nishikigi.jpg", rareza: "SSR" }, { nombre: "Nico Robin", img: "imagenes/Nico_Robin.jpg", rareza: "SSR" },
+            { nombre: "Noshiro (α)", img: "imagenes/Noshiro_astral.jpg", rareza: "αstral" }, { nombre: "Zero Two", img: "imagenes/Zero_Two.jpg", rareza: "SSR" },
+            { nombre: "Esdeath", img: "imagenes/Esdeath.jpg", rareza: "SSR" }, { nombre: "Rikka Takarada", img: "imagenes/Rikka_Takarada.jpg", rareza: "SSR" }
         ];
 
-        function renderColeccion() {
-            const list = document.getElementById('collection-list');
-            list.innerHTML = pool.map(p => {
-                const unl = obtenidos.find(o => o.nombre === p.nombre);
-                return `<div class="col-item ${unl ? p.rareza : ''}" onclick="ver('${p.nombre}')">
-                    ${unl ? `<img src="${p.img}">` : '?'}
-                </div>`;
-            }).join('');
+        const poolEspecial = [
+            { nombre: "Lappland", img: "imagenes/Lappland.jpg", rareza: "εspectral" },
+            { nombre: "Shinano", img: "imagenes/Shinano.jpg", rareza: "Glaciar" },
+            { nombre: "Agir", img: "imagenes/Agir.jpg", rareza: "εspectral" },
+            { nombre: "Hindenburg", img: "imagenes/Hindenburg.jpg", rareza: "εspectral" },
+           
+        ];
+
+        function toggleSecretBanner() {
+            forzarBanner = !forzarBanner;
+            alert(forzarBanner ? "Modo Especial Activado" : "Modo Especial Desactivado");
+            actualizarPantalla();
         }
 
-        function ver(nombre) {
-            const p = pool.find(x => x.nombre === nombre);
-            if(!obtenidos.find(x => x.nombre === nombre)) return;
-            // Se agregó la línea de rareza debajo del nombre
-            document.getElementById('modal-body').innerHTML = `<div class="card ${p.rareza}"><img src="${p.img}"><h3>${p.nombre}</h3><p><strong>Rareza: ${p.rareza}</strong></p></div>`;
-            document.getElementById('modal').style.display = 'flex';
-        }
-
-        function invocar() {
-            if (monedas >= 10) {
-                monedas -= 10;
-                let elegido = pool[Math.floor(Math.random() * pool.length)];
-                if (!obtenidos.find(o => o.nombre === elegido.nombre)) obtenidos.push(elegido);
-                document.getElementById('result-area').innerHTML = `<div class="card ${elegido.rareza} fade-in"><img src="${elegido.img}"><p>${elegido.nombre}</p></div>`;
-                actualizarPantalla();
-            }
+        function invocar(esEspecial) {
+            if (monedas < 10) return alert("Monedas insuficientes");
+            monedas -= 10;
+            const poolElegido = (esEspecial) ? poolEspecial : pool;
+            const elegido = poolElegido[Math.floor(Math.random() * poolElegido.length)];
+            if (!obtenidos.find(o => o.nombre === elegido.nombre)) obtenidos.push(elegido);
+            document.getElementById('result-area').innerHTML = `<div class="card ${elegido.rareza} fade-in"><img src="${elegido.img}"><p>${elegido.nombre}</p></div>`;
+            actualizarPantalla();
         }
 
         function actualizarPantalla() {
+            const mesActual = new Date().getMonth();
+            const esTemporada = (mesActual === 9 || mesActual === 11);
+            document.getElementById('btn-banner').style.display = (esTemporada || forzarBanner) ? 'block' : 'none';
             document.getElementById('monedas-count').innerText = monedas;
-            renderColeccion();
+            
+            const list = document.getElementById('collection-list');
+            const todos = [...pool, ...poolEspecial];
+            list.innerHTML = todos.map(p => {
+                const unl = obtenidos.find(o => o.nombre === p.nombre);
+                return `<div class="col-item ${unl ? p.rareza : ''}" onclick="ver('${p.nombre}')">${unl ? `<img src="${p.img}">` : '?'}</div>`;
+            }).join('');
+            
             localStorage.setItem('gacha', JSON.stringify({monedas, obtenidos: obtenidos.map(o => o.nombre)}));
         }
 
-        function reiniciarJuego() { localStorage.clear(); location.reload(); }
+        function ver(nombre) {
+            const todos = [...pool, ...poolEspecial];
+            const p = todos.find(x => x.nombre === nombre);
+            if(!p || !obtenidos.find(x => x.nombre === nombre)) return;
+            document.getElementById('modal-body').innerHTML = `<div class="card ${p.rareza}"><img src="${p.img}"><h3>${p.nombre}</h3><p>Rareza: ${p.rareza}</p></div>`;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
         function ganarMonedas() { monedas += 20; actualizarPantalla(); }
         
         let save = JSON.parse(localStorage.getItem('gacha'));
-        if(save) { monedas = save.monedas; obtenidos = pool.filter(p => save.obtenidos.includes(p.nombre)); }
+        if(save) { monedas = save.monedas; obtenidos = [...pool, ...poolEspecial].filter(p => save.obtenidos.includes(p.nombre)); }
         actualizarPantalla();
     </script>
 </body>
