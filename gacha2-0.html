@@ -8,22 +8,24 @@
         .fade-in { animation: fadeIn 0.5s ease-out; }
 
         @keyframes aura { 0% { box-shadow: 0 0 10px #ff00ff; border-color: #ff00ff; } 50% { box-shadow: 0 0 30px #00ffff; border-color: #00ffff; } }
-        @keyframes astralAura { 0% { box-shadow: 0 0 15px #fff; border-color: #00d4ff; } 50% { box-shadow: 0 0 30px #ff00ff; border-color: #ff00ff; } }
-        @keyframes spectralAura { 0% { box-shadow: 0 0 20px #800080; border-color: #800080; } 50% { box-shadow: 0 0 40px #33ff33; border-color: #33ff33; } }
-        @keyframes glacierAura { 0% { box-shadow: 0 0 20px #00aaff; border-color: #ffffff; } 50% { box-shadow: 0 0 40px #ffffff; border-color: #00aaff; } }
+        @keyframes astralAura { 0% { box-shadow: 0 0 15px #fa03bc; border-color: #ff00ea; } 50% { box-shadow: 0 0 30px #333; border-color: #333; } }
+        @keyframes spectralAura { 0% { box-shadow: 0 0 20px #9183FA; border-color: #9183FA; } 50% { box-shadow: 0 0 40px #b7aeff; border-color: #b7aeff; } }
+        @keyframes glacierAura { 0% { box-shadow: 0 0 20px #6BFEE3; border-color: #6BFEE3; } 50% { box-shadow: 0 0 40px #ffffff; border-color: #ffffff; } }
 
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; display: flex; flex-direction: column; align-items: center; padding: 40px; }
         .controls { display: flex; gap: 10px; margin-bottom: 20px; }
-        .card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 3px solid transparent; text-align: center; }
+        .card { background: rgb(247, 245, 245); padding: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 3px solid transparent; text-align: center; }
         .card img { display: block; border-radius: 10px; width: 220px; height: 320px; object-fit: cover; }
         
         .UR { animation: aura 1.5s infinite alternate; border: 3px solid #ff00ff; }
         .SSR { border: 3px solid #ffcc00; }
         .SR { border: 3px solid #b366ff; }
         .R { border: 3px solid #66ccff; }
-        .αstral { animation: astralAura 3s infinite linear; border: 4px solid #fff; }
-        .εspectral { animation: spectralAura 1.5s infinite alternate; border: 4px solid #800080; }
-        .Glaciar { animation: glacierAura 2s infinite linear; border: 4px solid #00aaff; }
+        
+        /* Clases actualizadas */
+        .αstral { animation: astralAura 3s infinite linear; border: 4px solid #000000; background-color: #000000; color: #fff; }
+        .εspectral { animation: spectralAura 1.5s infinite alternate; border: 4px solid #343636; background-color: #9183FA; color: #fff; }
+        .Glaciar { animation: glacierAura 2s infinite linear; border: 4px solid #6BFEE3; background-color: #6bc3fe; color: #fff; }
 
         .collection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 20px; width: 100%; max-width: 600px; }
         .col-item { width: 80px; height: 80px; background: #ddd; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #777; overflow: hidden; cursor: pointer; }
@@ -33,7 +35,6 @@
         .modal-content { background: white; padding: 20px; border-radius: 20px; max-width: 260px; text-align: center; }
         button { padding: 12px 24px; cursor: pointer; border: none; border-radius: 8px; background: #333; color: white; }
         
-        /* Botón Secreto */
         .secret-btn { position: fixed; bottom: 5px; right: 5px; width: 20px; height: 20px; cursor: pointer; opacity: 0; }
     </style>
 </head>
@@ -98,8 +99,7 @@
             { nombre: "Lappland", img: "imagenes/Lappland.jpg", rareza: "εspectral" },
             { nombre: "Shinano", img: "imagenes/Shinano.jpg", rareza: "Glaciar" },
             { nombre: "Agir", img: "imagenes/Agir.jpg", rareza: "εspectral" },
-            { nombre: "Hindenburg", img: "imagenes/Hindenburg.jpg", rareza: "εspectral" },
-           
+            { nombre: "Hindenburg", img: "imagenes/Hindenburg.jpg", rareza: "εspectral" }
         ];
 
         function toggleSecretBanner() {
@@ -145,7 +145,10 @@
         function ganarMonedas() { monedas += 20; actualizarPantalla(); }
         
         let save = JSON.parse(localStorage.getItem('gacha'));
-        if(save) { monedas = save.monedas; obtenidos = [...pool, ...poolEspecial].filter(p => save.obtenidos.includes(p.nombre)); }
+        if(save) { 
+            monedas = save.monedas; 
+            obtenidos = [...pool, ...poolEspecial].filter(p => save.obtenidos.includes(p.nombre)); 
+        }
         actualizarPantalla();
     </script>
 </body>
